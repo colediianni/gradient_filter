@@ -1,5 +1,7 @@
-
-
+import torch
+from torch.nn import Parameter
+from torch.nn.modules.conv import _ConvNd, init
+from torch.nn.modules.utils import _single, _pair, _triple
 
 class RGBColorInvariantConv2d(torch.nn.modules.conv._ConvNd):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1,
