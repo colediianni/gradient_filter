@@ -1,4 +1,5 @@
 import torch
+import torchvision
 import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
