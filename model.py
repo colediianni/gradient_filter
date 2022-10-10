@@ -25,7 +25,7 @@ def get_classification_model(model_type, device, load_from_path=""):
 
 
 # TODO: Make print statements write to a log file
-def train_classification_model(network, train_loader, val_loader, model_save_path, epochs=100, lr=0.001):
+def train_classification_model(network, train_loader, val_loader, device, model_save_path, epochs=100, lr=0.001):
     optimizer = optim.Adam(network.parameters(), lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
 
     best_val_loss = torch.inf
