@@ -4,16 +4,18 @@ import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
 import torch.nn.functional as F
+
 from layers import RGBColorInvariantConv2d
 
 
-def get_classification_model(model_type, device, load_from_path=""):
+def get_classification_model(model_type, device, input_channels, load_from_path=""):
     print('==> Building model..')
     if model_type == "normal_resnet":
         network = torchvision.models.resnet50(weights=None)
+        network.conv1 = torch.nn.Conv2d(input_channels, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
     elif model_type == "rgb_ci_resnet":
         network = torchvision.models.resnet50(weights=None)
-        network.conv1 = RGBColorInvariantConv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+        network.conv1 = RGBColorInvariantConv2d(input_channels, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
 
     network = network.to(device)
     if device == 'cuda':

@@ -4,18 +4,20 @@ from torchvision import datasets, transforms
 
 dataset_dict = {"mnist":torchvision.datasets.MNIST,
                 "cifar":torchvision.datasets.CIFAR10}
+dataset_channels = {"mnist":1,
+                    "cifar":3}
 
 def load_data(dataset, batch_size=16, train_prop=0.8, training_gan=False):
     if training_gan:
         #loading the dataset
-        dataset = dataset_dict[dataset](root="./data", download=True,
+        dataset_loader = dataset_dict[dataset](root="./data", download=True,
                                    transform=transforms.Compose([
                                        transforms.Resize(64),
                                        transforms.ToTensor(),
                                    ]))
-        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
+        data_loader = torch.utils.data.DataLoader(dataset_loader, batch_size=batch_size,
                                                  shuffle=True, num_workers=2)
-        return dataloader
+        return data_loader, dataset_channels[dataset]
     else:
         transform =transforms.Compose([transforms.ToTensor()])
 
@@ -31,4 +33,4 @@ def load_data(dataset, batch_size=16, train_prop=0.8, training_gan=False):
         test_set = dataset_dict[dataset](root = './data', train=False, transform=transform, download=True)
         test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False)
 
-        return train_loader, val_loader, test_loader
+        return train_loader, val_loader, test_loader, dataset_channels[dataset]
