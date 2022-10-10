@@ -25,7 +25,7 @@ def get_classification_model(model_type, device, load_from_path=""):
 
 
 # TODO: Make print statements write to a log file
-def train_classification_model(network, model_save_path, epochs=100, lr=0.001):
+def train_classification_model(network, train_loader, val_loader, model_save_path, epochs=100, lr=0.001):
     optimizer = optim.Adam(network.parameters(), lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
 
     best_val_loss = torch.inf
@@ -38,15 +38,15 @@ def train_classification_model(network, model_save_path, epochs=100, lr=0.001):
             images, labels = batch #Unpack the batch into images and labels
             images, labels = images.to(device), labels.to(device)
 
-        preds = network(images) #Pass batch
-        loss = F.cross_entropy(preds, labels) #Calculate Loss
+            preds = network(images) #Pass batch
+            loss = F.cross_entropy(preds, labels) #Calculate Loss
 
-        optimizer.zero_grad()
-        loss.backward() #Calculate gradients
-        optimizer.step() #Update weights
+            optimizer.zero_grad()
+            loss.backward() #Calculate gradients
+            optimizer.step() #Update weights
 
-        total_loss += loss.item()
-        total_correct += preds.argmax(dim=1).eq(labels).sum().item()
+            total_loss += loss.item()
+            total_correct += preds.argmax(dim=1).eq(labels).sum().item()
 
         print('epoch:', epoch, "total_correct:", total_correct, "loss:", total_loss)
 

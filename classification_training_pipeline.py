@@ -9,4 +9,4 @@ def classification_training_pipeline(model_type, dataset_name, device, model_sav
     network = get_classification_model(model_type, device, load_from_path=model_load_path)
 
     # train model
-    network = train_classification_model(network, model_save_path, epochs=epochs, lr=lr)
+    network = train_classification_model(network, train_loader, val_loader, model_save_path, epochs=epochs, lr=lr)
