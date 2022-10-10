@@ -1,5 +1,5 @@
-import torch
-import torchvision
+import torch, torchvision
+from torchvision import datasets, transforms
 import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
