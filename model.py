@@ -4,6 +4,7 @@ import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
 import torch.nn.functional as F
+import matplotlib.pyplot as plt
 
 from layers import RGBColorInvariantConv2d
 
@@ -72,6 +73,7 @@ def train_classification_model(network, train_loader, val_loader, device, model_
 
             val_loss_history.append(val_loss)
 
+        # TODO: ADD AXES, LEGEND, AND TITLE!!
         plt.plot(train_loss_history)
         plt.plot(val_loss_history)
         plt.savefig(loss_plot_path)
