@@ -47,7 +47,7 @@ def train_classification_model(network, train_loader, val_loader, device, model_
             loss.backward() #Calculate gradients
             optimizer.step() #Update weights
 
-            total_loss += loss.item()
+            total_loss += loss.item()/len(train_loader)
             total_correct += preds.argmax(dim=1).eq(labels).sum().item()
 
         print('epoch:', epoch, "total_correct:", total_correct, "loss:", total_loss)
@@ -60,7 +60,7 @@ def train_classification_model(network, train_loader, val_loader, device, model_
 
                 preds = network(images) #Pass batch
                 loss = F.cross_entropy(preds, labels) #Calculate Loss
-                val_loss += loss.item()
+                val_loss += loss.item()/len(val_loader)
 
             if val_loss < best_val_loss:
                 print("Saving model. New best validation loss: ", val_loss)
