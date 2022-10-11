@@ -88,7 +88,7 @@ class LearnedColorInvariantConv2d(torch.nn.modules.conv._ConvNd):
             in_channels, out_channels, kernel_size, stride, padding, dilation,
             False, _pair(0), groups, bias, padding_mode)
         self.weight = torch.nn.Parameter(torch.rand(size=[self.weight.shape[0], self.weight.shape[2] * self.weight.shape[3], self.weight.shape[2], self.weight.shape[3]], device="cuda"), requires_grad=True) # add to initialize weights at mean pixel value
-        self.color_mapping_model = nn.Sequential(nn.Linear(3, 10),
+        self.color_mapping_model = nn.Sequential(nn.Linear(in_channels, 10),
                                                   nn.ReLU(inplace=True),
                                                   nn.Linear(10, 25),
                                                   nn.ReLU(inplace=True),
