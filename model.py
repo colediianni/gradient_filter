@@ -27,10 +27,12 @@ def get_classification_model(model_type, device, input_channels, load_from_path=
 
 
 # TODO: Make print statements write to a log file
-def train_classification_model(network, train_loader, val_loader, device, model_save_path, epochs=100, lr=0.001):
+def train_classification_model(network, train_loader, val_loader, device, model_save_path, loss_plot_path, epochs=100, lr=0.001):
     optimizer = optim.Adam(network.parameters(), lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
 
     best_val_loss = torch.inf
+    train_loss_history = []
+    val_loss_history = []
 
     for epoch in range(epochs):
 
@@ -50,6 +52,7 @@ def train_classification_model(network, train_loader, val_loader, device, model_
             total_loss += loss.item()/len(train_loader)
             total_correct += preds.argmax(dim=1).eq(labels).sum().item()
 
+        train_loss_history.append(total_loss)
         print('epoch:', epoch, "total_correct:", total_correct, "loss:", total_loss)
 
         with torch.no_grad():
@@ -66,6 +69,13 @@ def train_classification_model(network, train_loader, val_loader, device, model_
                 print("Saving model. New best validation loss: ", val_loss)
                 best_val_loss = val_loss
                 torch.save(network.state_dict(), model_save_path)
+
+            val_loss_history.append(val_loss)
+
+        plt.plot(train_loss_history)
+        plt.plot(val_loss_history)
+        plt.savefig(loss_plot_path)
+        plt.close()
 
     print('>>> Training Complete >>>')
     return network
