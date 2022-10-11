@@ -9,8 +9,10 @@ import matplotlib.pyplot as plt
 from layers import RGBColorInvariantConv2d
 
 
-def get_classification_model(model_type, device, input_channels, load_from_path=""):
+def get_classification_model(model_type, device, input_channels, output_file, load_from_path=""):
     print('==> Building model..')
+    with open(output_file, 'a') as the_file:
+        the_file.write('==> Building model..')
     if model_type == "normal_resnet":
         network = torchvision.models.resnet50(weights=None)
         network.conv1 = torch.nn.Conv2d(input_channels, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
@@ -27,8 +29,7 @@ def get_classification_model(model_type, device, input_channels, load_from_path=
     return network
 
 
-# TODO: Make print statements write to a log file
-def train_classification_model(network, train_loader, val_loader, device, model_save_path, loss_plot_path, epochs=100, lr=0.001):
+def train_classification_model(network, train_loader, val_loader, device, model_save_path, output_file, loss_plot_path, epochs=100, lr=0.001):
     optimizer = optim.Adam(network.parameters(), lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
 
     best_val_loss = torch.inf
@@ -55,6 +56,8 @@ def train_classification_model(network, train_loader, val_loader, device, model_
 
         train_loss_history.append(total_loss)
         print('epoch:', epoch, "total_correct:", total_correct, "loss:", total_loss)
+        with open(output_file, 'a') as the_file:
+            the_file.write('epoch:', epoch, "total_correct:", total_correct, "loss:", total_loss)
 
         with torch.no_grad():
             val_loss = 0
@@ -68,6 +71,8 @@ def train_classification_model(network, train_loader, val_loader, device, model_
 
             if val_loss < best_val_loss:
                 print("Saving model. New best validation loss: ", val_loss)
+                with open(output_file, 'a') as the_file:
+                    the_file.write("Saving model. New best validation loss: ", val_loss)
                 best_val_loss = val_loss
                 torch.save(network.state_dict(), model_save_path)
 
@@ -80,4 +85,6 @@ def train_classification_model(network, train_loader, val_loader, device, model_
         plt.close()
 
     print('>>> Training Complete >>>')
+    with open(output_file, 'a') as the_file:
+        the_file.write('>>> Training Complete >>>')
     return network
