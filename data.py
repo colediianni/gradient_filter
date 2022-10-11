@@ -19,7 +19,7 @@ def load_data(dataset, batch_size=16, train_prop=0.8, training_gan=False):
                                                  shuffle=True, num_workers=2)
         return data_loader, dataset_channels[dataset]
     else:
-        transform =transforms.Compose([transforms.ToTensor()])
+        transform = transforms.Compose([transforms.ToTensor()])
 
         train_set = dataset_dict[dataset](root = './data', train=True,  transform=transform, download=True)
 
