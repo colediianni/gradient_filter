@@ -79,9 +79,12 @@ def train_classification_model(network, train_loader, val_loader, device, model_
 
             val_loss_history.append(val_loss)
 
-        # TODO: ADD AXES, LEGEND, AND TITLE!!
-        plt.plot(train_loss_history)
-        plt.plot(val_loss_history)
+        plt.plot(train_loss_history, "-b", label="train")
+        plt.plot(val_loss_history, "-r", label="val")
+        plt.title("Loss Histroy")
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
+        plt.legend(loc="upper right")
         plt.savefig(loss_plot_path)
         plt.close()
 
@@ -103,6 +106,8 @@ def classification_training_pipeline(base_path, model_type, dataset_name, device
     network = get_classification_model(model_type, device, input_channels, output_file, load_from_path=model_load_path)
 
     loss_plot_path = base_path + "/images/"+model_type+"_"+dataset_name
+    # TODO: empty/create new loss_plot_path file
+
     # train model
     network = train_classification_model(network, train_loader, val_loader, device, model_save_path, output_file, loss_plot_path, epochs=epochs, lr=lr)
 
