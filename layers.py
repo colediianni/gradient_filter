@@ -94,7 +94,7 @@ class LearnedColorInvariantConv2d(torch.nn.modules.conv._ConvNd):
                                                   nn.ReLU(inplace=True),
                                                   nn.Linear(25, 25),
                                                   nn.ReLU(inplace=True),
-                                                  nn.Linear(25, 10)) # TODO: Initialize color mapping model
+                                                  nn.Linear(25, 10))
 
     def conv2d_forward(self, input, weight, color_mapping_model):
         return learned_ci_conv2d(input, color_mapping_model, weight, self.bias, self.stride,
