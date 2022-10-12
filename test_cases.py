@@ -24,7 +24,7 @@ def test(network, test_loader, device, output_file):
 
     print('total correct:', preds_correct)
     with open(output_file, 'a') as the_file:
-        the_file.write('total correct:', preds_correct)
+        the_file.write(f'total correct: {preds_correct}')
     print('accuracy:', preds_correct / len(test_set))
     with open(output_file, 'a') as the_file:
-        the_file.write('accuracy:', preds_correct / len(test_preds))
+        the_file.write(f'accuracy: {preds_correct / len(test_preds)}')
