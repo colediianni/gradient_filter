@@ -11,4 +11,4 @@ def test_model(
         base_path / "logs" / (model_type + "_" + dataset_name + ".txt")
     )
 
-    test(network, test_loader, device, output_file)
+    test(network, test_loader, device)

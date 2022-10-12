@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -16,12 +17,9 @@ def get_classification_model(
     model_type,
     device,
     input_channels,
-    output_file,
     load_from_path: Path = None,
 ):
-    print("==> Building model..")
-    with open(output_file, "a") as the_file:
-        the_file.write("==> Building model..")
+    logging.info("==> Building model..")
     if model_type == "normal_resnet":
         network = torchvision.models.resnet50()
         network.conv1 = torch.nn.Conv2d(
@@ -48,7 +46,9 @@ def get_classification_model(
         network = torch.nn.DataParallel(network)
         cudnn.benchmark = True
     if load_from_path is not None:
-        network.load_state_dict(torch.load(load_from_path))
+        network.load_state_dict(
+            torch.load(load_from_path, map_location=torch.device(device))
+        )
     return network
 
 
@@ -58,7 +58,6 @@ def train_classification_model(
     val_loader,
     device,
     model_save_path: Path,
-    output_file,
     loss_plot_path: Path,
     epochs=100,
     lr=0.001,
@@ -77,8 +76,8 @@ def train_classification_model(
 
     for epoch in range(epochs):
 
-        total_correct = 0
-        total_loss = 0
+        total_correct = 0.0
+        total_loss = 0.0
         for batch in train_loader:  # Get batch
             images, labels = batch  # Unpack the batch into images and labels
             images, labels = images.to(device), labels.to(device)
@@ -94,26 +93,16 @@ def train_classification_model(
             total_correct += preds.argmax(dim=1).eq(labels).sum().item()
 
         train_loss_history.append(total_loss)
-        print(
-            "epoch:",
-            epoch,
-            "total_correct:",
-            total_correct,
-            "loss:",
-            total_loss,
-        )
-        with open(output_file, "a") as the_file:
-            the_file.write(
-                "epoch:",
-                epoch,
-                "total_correct:",
-                total_correct,
-                "loss:",
-                total_loss,
+        logging.info(
+            (
+                f"epoch: {epoch}",
+                f"total_correct: {total_correct}",
+                f"total_loss: {total_loss}",
             )
+        )
 
         with torch.no_grad():
-            val_loss = 0
+            val_loss = 0.0
             for batch in val_loader:
                 (
                     images,
@@ -126,11 +115,9 @@ def train_classification_model(
                 val_loss += loss.item() / len(val_loader)
 
             if val_loss < best_val_loss:
-                print("Saving model. New best validation loss: ", val_loss)
-                with open(output_file, "a") as the_file:
-                    the_file.write(
-                        "Saving model. New best validation loss: ", val_loss
-                    )
+                logging.info(
+                    f"Saving model. New best validation loss: {val_loss}"
+                )
                 best_val_loss = val_loss
                 torch.save(network.state_dict(), model_save_path)
 
@@ -142,9 +129,7 @@ def train_classification_model(
         plt.savefig(loss_plot_path)
         plt.close()
 
-    print(">>> Training Complete >>>")
-    with open(output_file, "a") as the_file:
-        the_file.write(">>> Training Complete >>>")
+    logging.info(">>> Training Complete >>>")
     return network
 
 
@@ -160,7 +145,7 @@ def classification_training_pipeline(
     if not isinstance(base_path, Path):
         base_path = Path(base_path)
 
-    if not model_load_path is None and isinstance(model_load_path, Path):
+    if model_load_path is not None and isinstance(model_load_path, Path):
         model_load_path = Path(model_load_path)
 
     model_save_path = (
@@ -169,6 +154,17 @@ def classification_training_pipeline(
     output_file = (
         base_path / "logs" / (model_type + "_" + dataset_name + ".txt")
     )
+
+    logger = logging.root
+    file_handler = logging.FileHandler(output_file)
+    stream_handler = logging.StreamHandler()
+
+    logger.setLevel(logging.INFO)
+    file_handler.setLevel(logging.INFO)
+    stream_handler.setLevel(logging.INFO)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
 
     # load datasets
     train_loader, val_loader, test_loader, input_channels = load_data(
@@ -180,7 +176,6 @@ def classification_training_pipeline(
         model_type,
         device,
         input_channels,
-        output_file,
         load_from_path=model_load_path,
     )
 
@@ -192,7 +187,6 @@ def classification_training_pipeline(
         val_loader,
         device,
         model_save_path,
-        output_file,
         loss_plot_path,
         epochs=epochs,
         lr=lr,
