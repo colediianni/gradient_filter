@@ -18,7 +18,7 @@ def get_classification_model(model_type, device, input_channels, output_file, lo
     if model_type == "normal_resnet":
         network = torchvision.models.resnet50(weights=None)
         network.conv1 = torch.nn.Conv2d(input_channels, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
-    elif model_type == "rgb_ci_resnet":
+    elif model_type == "abs_diff_ci_resnet":
         network = torchvision.models.resnet50(weights=None)
         network.conv1 = RGBColorInvariantConv2d(input_channels, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
 
@@ -95,21 +95,21 @@ def train_classification_model(network, train_loader, val_loader, device, model_
     return network
 
 
-def classification_training_pipeline(base_path, model_type, dataset_name, device, epochs=100, lr=0.001, model_load_path=""):
+def classification_training_pipeline(base_path, model_type, dataset_name, colorspace, device, epochs=100, lr=0.001, model_load_path=""):
 
-    model_save_path = os.path.join(base_path, "models",model_type+"_"+dataset_name+".pth")
-    output_file = os.path.join(base_path, "logs", model_type+"_"+dataset_name+".txt")
+    model_save_path = os.path.join(base_path, "models",model_type+"_"+dataset_name+"_"+colorspace".pth")
+    output_file = os.path.join(base_path, "logs", model_type+"_"+dataset_name+"_"+colorspace".txt")
     with open(output_file, 'w') as fp:
         pass
     # empty/create new loss_plot_path file
 
     # load datasets
-    train_loader, val_loader, test_loader, input_channels = load_data(dataset=dataset_name, batch_size=16, train_prop=0.8, training_gan=False)
+    train_loader, val_loader, test_loader, input_channels = load_data(dataset=dataset_name, colorspace=colorspace, batch_size=16, train_prop=0.8, training_gan=False)
 
     # load model
     network = get_classification_model(model_type, device, input_channels, output_file, load_from_path=model_load_path)
 
-    loss_plot_path = os.path.join(base_path, "images", model_type+"_"+dataset_name)
+    loss_plot_path = os.path.join(base_path, "images", model_type+"_"+dataset_name+"_"+colorspace)
 
     # train model
     network = train_classification_model(network, train_loader, val_loader, device, model_save_path, output_file, loss_plot_path, epochs=epochs, lr=lr)
