@@ -1,35 +1,83 @@
 import torch
-from torch.nn import Parameter
-from torch.nn.modules.conv import _ConvNd, init
-from torch.nn.modules.utils import _single, _pair, _triple
+import torch.nn as nn
+from torch.nn.modules.utils import _pair
+
 
 class RGBColorInvariantConv2d(torch.nn.modules.conv._ConvNd):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1,
-                 padding=0, dilation=1, groups=1,
-                 bias=True, padding_mode='zeros'):
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        kernel_size,
+        stride=1,
+        padding=0,
+        dilation=1,
+        groups=1,
+        bias=True,
+        padding_mode="zeros",
+    ):
         kernel_size = _pair(kernel_size)
         stride = _pair(stride)
         padding = _pair(padding)
         dilation = _pair(dilation)
-        super(ColorInvariantConv2d, self).__init__(
-            in_channels, out_channels, kernel_size, stride, padding, dilation,
-            False, _pair(0), groups, bias, padding_mode)
+        super(RGBColorInvariantConv2d, self).__init__(
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride,
+            padding,
+            dilation,
+            False,
+            _pair(0),
+            groups,
+            bias,
+            padding_mode,
+        )
         # print("HERE", self.weight.shape) # [10, 3, 28, 28])
-        self.weight = torch.nn.Parameter(torch.rand(size=[self.weight.shape[0], self.weight.shape[2] * self.weight.shape[3], self.weight.shape[2], self.weight.shape[3]], device="cuda"), requires_grad=True) # add to initialize weights at mean pixel value
+        self.weight = torch.nn.Parameter(
+            torch.rand(
+                size=[
+                    self.weight.shape[0],
+                    self.weight.shape[2] * self.weight.shape[3],
+                    self.weight.shape[2],
+                    self.weight.shape[3],
+                ],
+                device="cuda",
+            ),
+            requires_grad=True,
+        )  # add to initialize weights at mean pixel value
 
     def conv2d_forward(self, input, weight):
-        return rgb_conv2d(input, weight, self.bias, self.stride,
-                        self.padding, self.dilation, self.groups)
+        return rgb_conv2d(
+            input,
+            weight,
+            self.bias,
+            self.stride,
+            self.padding,
+            self.dilation,
+            self.groups,
+        )
 
     def forward(self, input):
         return self.conv2d_forward(input, self.weight)
 
-def rgb_conv2d(input, weight, bias=None, stride=(1,1), padding=(0,0), dilation=(1,1), groups=1):
+
+def rgb_conv2d(
+    input,
+    weight,
+    bias=None,
+    stride=(1, 1),
+    padding=(0, 0),
+    dilation=(1, 1),
+    groups=1,
+):
     batch_size, in_channels, in_h, in_w = input.shape
     out_channels, kern_in_channels, kh, kw = weight.shape
     out_h = int((in_h - kh + 2 * padding[0]) / stride[0] + 1)
     out_w = int((in_w - kw + 2 * padding[1]) / stride[1] + 1)
-    unfold = torch.nn.Unfold(kernel_size=(kh, kw), dilation=dilation, padding=padding, stride=stride)
+    unfold = torch.nn.Unfold(
+        kernel_size=(kh, kw), dilation=dilation, padding=padding, stride=stride
+    )
     inp_unf = unfold(input)
     w_ = weight.view(weight.size(0), -1).t()
 
@@ -43,8 +91,10 @@ def rgb_conv2d(input, weight, bias=None, stride=(1,1), padding=(0,0), dilation=(
     kern = kern.reshape((out_channels, kern_in_channels, kh * kw))
     # print("kern", kern.shape) # [64, 16, 16]
 
-
-    comparison_image = torch.zeros(size=(image.shape[0], image.shape[1], image.shape[3], image.shape[3]), device="cuda")
+    comparison_image = torch.zeros(
+        size=(image.shape[0], image.shape[1], image.shape[3], image.shape[3]),
+        device="cuda",
+    )
     # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
 
     image = image.permute([0, 1, 3, 2])
@@ -54,9 +104,11 @@ def rgb_conv2d(input, weight, bias=None, stride=(1,1), padding=(0,0), dilation=(
 
     # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
     for pixel in range(image.shape[2]):
-      testing = torch.abs(torch.sub(image, image[:, :, pixel:pixel + 1, :]))
-      # print("testing", testing.shape) # [128, 961, 16, 8]
-      comparison_image[:, :, :, pixel] = testing.sum(dim=3)
+        testing = torch.abs(
+            torch.sub(image, image[:, :, pixel : pixel + 1, :])
+        )
+        # print("testing", testing.shape) # [128, 961, 16, 8]
+        comparison_image[:, :, :, pixel] = testing.sum(dim=3)
 
     # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
 
@@ -75,41 +127,94 @@ def rgb_conv2d(input, weight, bias=None, stride=(1,1), padding=(0,0), dilation=(
     return out.float()
 
 
-
 class LearnedColorInvariantConv2d(torch.nn.modules.conv._ConvNd):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1,
-                 padding=0, dilation=1, groups=1,
-                 bias=True, padding_mode='zeros'):
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        kernel_size,
+        stride=1,
+        padding=0,
+        dilation=1,
+        groups=1,
+        bias=True,
+        padding_mode="zeros",
+    ):
         kernel_size = _pair(kernel_size)
         stride = _pair(stride)
         padding = _pair(padding)
         dilation = _pair(dilation)
         super(LearnedColorInvariantConv2d, self).__init__(
-            in_channels, out_channels, kernel_size, stride, padding, dilation,
-            False, _pair(0), groups, bias, padding_mode)
-        self.weight = torch.nn.Parameter(torch.rand(size=[self.weight.shape[0], self.weight.shape[2] * self.weight.shape[3], self.weight.shape[2], self.weight.shape[3]], device="cuda"), requires_grad=True) # add to initialize weights at mean pixel value
-        self.color_mapping_model = nn.Sequential(nn.Linear(in_channels, 10),
-                                                  nn.ReLU(inplace=True),
-                                                  nn.Linear(10, 25),
-                                                  nn.ReLU(inplace=True),
-                                                  nn.Linear(25, 25),
-                                                  nn.ReLU(inplace=True),
-                                                  nn.Linear(25, 10))
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride,
+            padding,
+            dilation,
+            False,
+            _pair(0),
+            groups,
+            bias,
+            padding_mode,
+        )
+        self.weight = torch.nn.Parameter(
+            torch.rand(
+                size=[
+                    self.weight.shape[0],
+                    self.weight.shape[2] * self.weight.shape[3],
+                    self.weight.shape[2],
+                    self.weight.shape[3],
+                ],
+                device="cuda",
+            ),
+            requires_grad=True,
+        )  # add to initialize weights at mean pixel value
+        self.color_mapping_model = nn.Sequential(
+            nn.Linear(in_channels, 10),
+            nn.ReLU(inplace=True),
+            nn.Linear(10, 25),
+            nn.ReLU(inplace=True),
+            nn.Linear(25, 25),
+            nn.ReLU(inplace=True),
+            nn.Linear(25, 10),
+        )
 
     def conv2d_forward(self, input, weight, color_mapping_model):
-        return learned_ci_conv2d(input, color_mapping_model, weight, self.bias, self.stride,
-                        self.padding, self.dilation, self.groups)
+        return learned_ci_conv2d(
+            input,
+            color_mapping_model,
+            weight,
+            self.bias,
+            self.stride,
+            self.padding,
+            self.dilation,
+            self.groups,
+        )
 
     def forward(self, input):
-        return self.conv2d_forward(input, self.weight, self.color_mapping_model)
+        return self.conv2d_forward(
+            input, self.weight, self.color_mapping_model
+        )
+
 
 # Clean Convolution
-def learned_ci_conv2d(input, color_mapping_model, weight, bias=None, stride=(1,1), padding=(0,0), dilation=(1,1), groups=1):
+def learned_ci_conv2d(
+    input,
+    color_mapping_model,
+    weight,
+    bias=None,
+    stride=(1, 1),
+    padding=(0, 0),
+    dilation=(1, 1),
+    groups=1,
+):
     batch_size, in_channels, in_h, in_w = input.shape
     out_channels, kern_in_channels, kh, kw = weight.shape
     out_h = int((in_h - kh + 2 * padding[0]) / stride[0] + 1)
     out_w = int((in_w - kw + 2 * padding[1]) / stride[1] + 1)
-    unfold = torch.nn.Unfold(kernel_size=(kh, kw), dilation=dilation, padding=padding, stride=stride)
+    unfold = torch.nn.Unfold(
+        kernel_size=(kh, kw), dilation=dilation, padding=padding, stride=stride
+    )
     inp_unf = unfold(input)
     w_ = weight.view(weight.size(0), -1).t()
 
@@ -123,7 +228,10 @@ def learned_ci_conv2d(input, color_mapping_model, weight, bias=None, stride=(1,1
     kern = kern.reshape((out_channels, kern_in_channels, kh * kw))
     # print("kern", kern.shape) # [64, 16, 16]
 
-    comparison_image = torch.zeros(size=(image.shape[0], image.shape[1], image.shape[3], image.shape[3]), device="cuda")
+    comparison_image = torch.zeros(
+        size=(image.shape[0], image.shape[1], image.shape[3], image.shape[3]),
+        device="cuda",
+    )
     # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
 
     image = image.permute([0, 1, 3, 2])
@@ -135,14 +243,17 @@ def learned_ci_conv2d(input, color_mapping_model, weight, bias=None, stride=(1,1
 
     # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
     for pixel in range(image.shape[2]):
-      # print(color_mapping_model(image).shape) # torch.Size([16, 256, 49, 10])
-      # print(color_mapping_model(image[:, :, pixel:pixel + 1, :]).shape) # torch.Size([16, 256, 1, 10])
+        # print(color_mapping_model(image).shape) # torch.Size([16, 256, 49, 10])
+        # print(color_mapping_model(image[:, :, pixel:pixel + 1, :]).shape) # torch.Size([16, 256, 1, 10])
 
-      testing = torch.mul(color_mapping_model(image), color_mapping_model(image[:, :, pixel:pixel + 1, :]))
-      # print(testing.shape)
-      # print(testing.sum(dim=3).shape)
-      # print("testing", testing.shape) # [128, 961, 16, 8]
-      comparison_image[:, :, :, pixel] = testing.sum(dim=3)
+        testing = torch.mul(
+            color_mapping_model(image),
+            color_mapping_model(image[:, :, pixel : pixel + 1, :]),
+        )
+        # print(testing.shape)
+        # print(testing.sum(dim=3).shape)
+        # print("testing", testing.shape) # [128, 961, 16, 8]
+        comparison_image[:, :, :, pixel] = testing.sum(dim=3)
 
     # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
 
