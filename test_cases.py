@@ -1,7 +1,5 @@
 import torch
 
-# TODO: Add test cases here
-
 @torch.no_grad()
 def get_all_preds(model, loader, device, invert=False):
   all_preds = torch.tensor([]).to(device)
@@ -16,8 +14,10 @@ def get_all_preds(model, loader, device, invert=False):
 
   return all_preds
 
-# TODO update log file saving
+
 def test(network, test_loader, device, output_file):
+    network.eval()
+
     test_preds = get_all_preds(network, test_loader, device)
     actual_labels = torch.Tensor(test_set.targets).to(device)
     preds_correct = test_preds.argmax(dim=1).eq(actual_labels).sum().item()
