@@ -156,7 +156,7 @@ def classification_training_pipeline(
     )
 
     logger = logging.root
-    file_handler = logging.FileHandler(output_file)
+    file_handler = logging.FileHandler(output_file, mode="w")
     stream_handler = logging.StreamHandler()
 
     logger.setLevel(logging.INFO)
