@@ -16,10 +16,10 @@ def get_classification_model(model_type, device, input_channels, output_file, lo
     with open(output_file, 'a') as the_file:
         the_file.write('==> Building model..')
     if model_type == "normal_resnet":
-        network = torchvision.models.resnet50(weights=None)
+        network = torchvision.models.resnet50()
         network.conv1 = torch.nn.Conv2d(input_channels, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
     elif model_type == "rgb_ci_resnet":
-        network = torchvision.models.resnet50(weights=None)
+        network = torchvision.models.resnet50()
         network.conv1 = RGBColorInvariantConv2d(input_channels, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
 
     network = network.to(device)
