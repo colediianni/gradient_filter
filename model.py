@@ -59,7 +59,7 @@ def train_classification_model(network, train_loader, val_loader, device, model_
         train_loss_history.append(total_loss)
         print('epoch:', epoch, "total_correct:", total_correct, "loss:", total_loss)
         with open(output_file, 'a') as the_file:
-            the_file.write('epoch:', epoch, "total_correct:", total_correct, "loss:", total_loss)
+            the_file.write(f'epoch: {epoch}, total_correct: {total_correct}, loss: {total_loss}')
 
         with torch.no_grad():
             val_loss = 0
@@ -74,7 +74,7 @@ def train_classification_model(network, train_loader, val_loader, device, model_
             if val_loss < best_val_loss:
                 print("Saving model. New best validation loss: ", val_loss)
                 with open(output_file, 'a') as the_file:
-                    the_file.write("Saving model. New best validation loss: ", val_loss)
+                    the_file.write(f"Saving model. New best validation loss: {val_loss}")
                 best_val_loss = val_loss
                 torch.save(network.state_dict(), model_save_path)
 
