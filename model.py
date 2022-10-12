@@ -99,6 +99,9 @@ def classification_training_pipeline(base_path, model_type, dataset_name, device
 
     model_save_path = os.path.join(base_path, "models",model_type+"_"+dataset_name+".pth")
     output_file = os.path.join(base_path, "logs", model_type+"_"+dataset_name+".txt")
+    with open(output_file, 'w') as fp:
+        pass
+    # empty/create new loss_plot_path file
 
     # load datasets
     train_loader, val_loader, test_loader, input_channels = load_data(dataset=dataset_name, batch_size=16, train_prop=0.8, training_gan=False)
@@ -107,9 +110,6 @@ def classification_training_pipeline(base_path, model_type, dataset_name, device
     network = get_classification_model(model_type, device, input_channels, output_file, load_from_path=model_load_path)
 
     loss_plot_path = os.path.join(base_path, "images", model_type+"_"+dataset_name)
-    with open(loss_plot_path, 'w') as fp:
-        pass
-    # empty/create new loss_plot_path file
 
     # train model
     network = train_classification_model(network, train_loader, val_loader, device, model_save_path, output_file, loss_plot_path, epochs=epochs, lr=lr)
@@ -117,6 +117,9 @@ def classification_training_pipeline(base_path, model_type, dataset_name, device
 
 def classification_testing_pipeline(base_path, model_type, dataset_name, device, model_load_path):
 
-    output_file = base_path+"/logs/"+model_type+"_"+dataset_name+".txt"
+    output_file = os.path.join(base_path, "logs", model_type+"_"+dataset_name+".txt")
+    with open(output_file, 'w') as fp:
+        pass
+    # empty/create new loss_plot_path file
 
     test(network, test_loader, device, output_file)
