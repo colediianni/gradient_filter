@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 from layers import RGBColorInvariantConv2d
 from data import load_data
+from test_cases import test
 
 def get_classification_model(model_type, device, input_channels, output_file, load_from_path=""):
     print('==> Building model..')
@@ -104,3 +105,10 @@ def classification_training_pipeline(base_path, model_type, dataset_name, device
     loss_plot_path = base_path + "/images/"+model_type+"_"+dataset_name
     # train model
     network = train_classification_model(network, train_loader, val_loader, device, model_save_path, output_file, loss_plot_path, epochs=epochs, lr=lr)
+
+
+def classification_testing_pipeline(base_path, model_type, dataset_name, device, model_load_path):
+
+    output_file = base_path+"/logs/"+model_type+"_"+dataset_name+".txt"
+
+    test(network, test_loader, device, output_file)
