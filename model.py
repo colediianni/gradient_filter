@@ -139,7 +139,7 @@ def train_classification_model(
 
 
 def classification_training_pipeline(
-    base_path: Path | str,
+    base_path: Path,
     model_type,
     dataset_name,
     colorspace,
@@ -155,10 +155,10 @@ def classification_training_pipeline(
         model_load_path = Path(model_load_path)
 
     model_save_path = (
-        base_path / "models" / ("models",model_type+"_"+dataset_name+"_"+colorspace+".pth")
+        base_path / "models" / (model_type+"_"+dataset_name+"_"+colorspace+".pth")
     )
     output_file = (
-        base_path / "logs" / ("models",model_type+"_"+dataset_name+"_"+colorspace+".txt")
+        base_path / "logs" / (model_type+"_"+dataset_name+"_"+colorspace+".txt")
     )
 
     logger = logging.root
@@ -185,7 +185,7 @@ def classification_training_pipeline(
         load_from_path=model_load_path,
     )
 
-    loss_plot_path = base_path / "images" / ("models",model_type+"_"+dataset_name+"_"+colorspace)
+    loss_plot_path = base_path / "images" / (model_type+"_"+dataset_name+"_"+colorspace)
     # train model
     network = train_classification_model(
         network,
