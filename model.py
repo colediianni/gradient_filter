@@ -174,7 +174,7 @@ def classification_training_pipeline(
 
     # load datasets
     train_loader, val_loader, test_loader, input_channels = load_data(
-        dataset=dataset_name, colorspace, batch_size=16, train_prop=0.8, training_gan=False
+        dataset=dataset_name, colorspace=colorspace, batch_size=16, train_prop=0.8, training_gan=False
     )
 
     # load model
