@@ -18,7 +18,7 @@ def get_all_preds(model, loader, device, invert=False):
     return all_preds
 
 
-def test(network, test_loader, device, output_file):
+def test(network, test_loader, device):
     network.eval()
 
     test_preds = get_all_preds(network, test_loader, device)

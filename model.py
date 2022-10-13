@@ -141,7 +141,7 @@ def train_classification_model(
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
         plt.legend(loc="upper right")
-        plt.savefig(loss_plot_path)
+        plt.savefig(loss_plot_path, format="svg")
         plt.close()
 
     logging.info(">>> Training Complete >>>")
@@ -165,10 +165,14 @@ def classification_training_pipeline(
         model_load_path = Path(model_load_path)
 
     model_save_path = (
-        base_path / "models" / (model_type+"_"+dataset_name+"_"+colorspace+".pth")
+        base_path
+        / "models"
+        / (model_type + "_" + dataset_name + "_" + colorspace + ".pth")
     )
     output_file = (
-        base_path / "logs" / (model_type+"_"+dataset_name+"_"+colorspace+".txt")
+        base_path
+        / "logs"
+        / (model_type + "_" + dataset_name + "_" + colorspace + ".txt")
     )
 
     logger = logging.root
@@ -184,7 +188,11 @@ def classification_training_pipeline(
 
     # load datasets
     train_loader, val_loader, test_loader, input_channels = load_data(
-        dataset=dataset_name, colorspace=colorspace, batch_size=16, train_prop=0.8, training_gan=False
+        dataset=dataset_name,
+        colorspace=colorspace,
+        batch_size=16,
+        train_prop=0.8,
+        training_gan=False,
     )
 
     # load model
@@ -195,7 +203,11 @@ def classification_training_pipeline(
         load_from_path=model_load_path,
     )
 
-    loss_plot_path = base_path / "images" / (model_type+"_"+dataset_name+"_"+colorspace)
+    loss_plot_path = (
+        base_path
+        / "images"
+        / (model_type + "_" + dataset_name + "_" + colorspace)
+    )
     # train model
     network = train_classification_model(
         network,
