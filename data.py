@@ -41,7 +41,7 @@ def load_data(dataset, colorspace, batch_size=16, train_prop=0.8, test_transform
             valid_dataset, batch_size=batch_size, shuffle=True
         )
 
-        test_set = dataset_dict[dataset](root = './data', train=False, transform=colorspace_transforms, download=True)
+        test_set = dataset_dict[dataset](root = './data', train=False, transform=transforms.Compose(colorspace_transforms), download=True)
         test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False)
 
         return train_loader, val_loader, test_loader, dataset_channels[dataset]
