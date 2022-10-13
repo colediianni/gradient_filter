@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.nn.modules.utils import _pair
 
 
-class RGBColorInvariantConv2d(torch.nn.modules.conv._ConvNd):
+class EuclideanColorInvariantConv2d(torch.nn.modules.conv._ConvNd):
     def __init__(
         self,
         in_channels,
@@ -20,7 +20,7 @@ class RGBColorInvariantConv2d(torch.nn.modules.conv._ConvNd):
         stride = _pair(stride)
         padding = _pair(padding)
         dilation = _pair(dilation)
-        super(RGBColorInvariantConv2d, self).__init__(
+        super(EuclideanColorInvariantConv2d, self).__init__(
             in_channels,
             out_channels,
             kernel_size,
@@ -104,11 +104,11 @@ def rgb_conv2d(
 
     # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
     for pixel in range(image.shape[2]):
-        testing = torch.abs(
+        testing = torch.square(
             torch.sub(image, image[:, :, pixel : pixel + 1, :])
         )
         # print("testing", testing.shape) # [128, 961, 16, 8]
-        comparison_image[:, :, :, pixel] = testing.sum(dim=3)
+        comparison_image[:, :, :, pixel] = torch.sqrt(testing.sum(dim=3))
 
     # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
 

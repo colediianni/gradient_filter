@@ -11,7 +11,7 @@ import torch.optim as optim
 import torchvision
 
 from data import load_data
-from layers import RGBColorInvariantConv2d
+from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d
 from test_cases import test
 
 
@@ -32,9 +32,19 @@ def get_classification_model(
             padding=(3, 3),
             bias=False,
         )
-    elif model_type == "abs_diff_ci_resnet":
+    elif model_type == "euclidean_diff_ci_resnet":
         network = torchvision.models.resnet50()
-        network.conv1 = RGBColorInvariantConv2d(
+        network.conv1 = EuclideanColorInvariantConv2d(
+            input_channels,
+            64,
+            kernel_size=(7, 7),
+            stride=(2, 2),
+            padding=(3, 3),
+            bias=False,
+        )
+    elif model_type == "learned_diff_ci_resnet":
+        network = torchvision.models.resnet50()
+        network.conv1 = LearnedColorInvariantConv2d(
             input_channels,
             64,
             kernel_size=(7, 7),
