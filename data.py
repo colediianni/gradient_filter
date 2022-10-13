@@ -26,7 +26,7 @@ def load_data(dataset, colorspace, batch_size=16, train_prop=0.8, test_transform
     else:
         colorspace_transforms = test_transforms + colorspace_transforms
 
-        train_set = dataset_dict[dataset](root = './data', train=True,  transform=colorspace_transforms, download=True)
+        train_set = dataset_dict[dataset](root = './data', train=True,  transform=transforms.Compose(colorspace_transforms), download=True)
 
         train_size = int(train_prop * len(train_set))
         valid_size = len(train_set) - train_size
