@@ -82,6 +82,8 @@ def train_classification_model(
         weight_decay=5e-4,
     )
 
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
+
     best_val_loss = torch.inf
     train_loss_history = []
     val_loss_history = []
@@ -145,6 +147,8 @@ def train_classification_model(
         plt.legend(loc="upper right")
         plt.savefig(loss_plot_path)#, format="svg")
         plt.close()
+
+        scheduler.step()
 
     logging.info(">>> Training Complete >>>")
     return network
