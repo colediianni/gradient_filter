@@ -74,7 +74,7 @@ def train_classification_model(
     epochs=100,
     lr=0.001,
 ):
-    optimizer = optim.SGD(net.parameters(), lr=lr,
+    optimizer = optim.SGD(network.parameters(), lr=lr,
                       momentum=0.9, weight_decay=5e-4)
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
