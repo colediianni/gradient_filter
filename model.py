@@ -74,13 +74,8 @@ def train_classification_model(
     epochs=100,
     lr=0.001,
 ):
-    optimizer = optim.Adam(
-        network.parameters(),
-        lr=lr,
-        betas=(0.9, 0.999),
-        eps=1e-08,
-        weight_decay=5e-4,
-    )
+    optimizer = optim.SGD(net.parameters(), lr=lr,
+                      momentum=0.9, weight_decay=5e-4)
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
 
@@ -161,7 +156,7 @@ def classification_training_pipeline(
     colorspace,
     device,
     epochs=100,
-    lr=0.1,
+    lr=0.001,
     model_load_path: Path = None,
 ):
     if not isinstance(base_path, Path):
