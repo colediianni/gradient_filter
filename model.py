@@ -90,7 +90,7 @@ def train_classification_model(
 
         total_correct = 0.0
         total_loss = 0.0
-        net.train()
+        network.train()
         for batch in train_loader:  # Get batch
             images, labels = batch  # Unpack the batch into images and labels
             images, labels = images.to(device), labels.to(device)
@@ -114,7 +114,7 @@ def train_classification_model(
             )
         )
 
-        net.eval()
+        network.eval()
         with torch.no_grad():
             val_loss = 0.0
             for batch in val_loader:
