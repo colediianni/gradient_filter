@@ -114,6 +114,7 @@ def train_classification_model(
         network.eval()
         with torch.no_grad():
             val_loss = 0.0
+            total_correct = 0.0
             for batch in val_loader:
                 (
                     images,
@@ -124,10 +125,18 @@ def train_classification_model(
                 preds = network(images)  # Pass batch
                 loss = F.cross_entropy(preds, labels)  # Calculate Loss
                 val_loss += loss.item() / len(val_loader)
+                total_correct += preds.argmax(dim=1).eq(labels).sum().item()
 
             if val_loss < best_val_loss:
                 logging.info(
                     f"Saving model. New best validation loss: {val_loss}"
+                )
+                logging.info(
+                    (
+                        f"Saving model",
+                        f"total_correct: {total_correct}",
+                        f"total_loss: {val_loss}",
+                    )
                 )
                 best_val_loss = val_loss
                 torch.save(network.state_dict(), model_save_path)
