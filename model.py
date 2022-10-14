@@ -128,9 +128,9 @@ def train_classification_model(
                 total_correct += preds.argmax(dim=1).eq(labels).sum().item()
 
             if val_loss < best_val_loss:
-                logging.info(
-                    f"Saving model. New best validation loss: {val_loss}"
-                )
+                # logging.info(
+                #     f"Saving model. New best validation loss: {val_loss}"
+                # )
                 logging.info(
                     (
                         f"Saving model",
