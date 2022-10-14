@@ -23,7 +23,7 @@ def get_classification_model(
 ):
     logging.info("==> Building model..")
     if model_type == "normal_resnet":
-        network = torchvision.models.resnet50()
+        network = torchvision.models.resnet50(weights=None)
         network.conv1 = torch.nn.Conv2d(
             input_channels,
             64,
@@ -33,7 +33,7 @@ def get_classification_model(
             bias=False,
         )
     elif model_type == "euclidean_diff_ci_resnet":
-        network = torchvision.models.resnet50()
+        network = torchvision.models.resnet50(weights=None)
         network.conv1 = EuclideanColorInvariantConv2d(
             input_channels,
             64,
@@ -43,7 +43,7 @@ def get_classification_model(
             bias=False,
         )
     elif model_type == "learned_diff_ci_resnet":
-        network = torchvision.models.resnet50()
+        network = torchvision.models.resnet50(weights=None)
         network.conv1 = LearnedColorInvariantConv2d(
             input_channels,
             64,
@@ -79,7 +79,7 @@ def train_classification_model(
         lr=lr,
         betas=(0.9, 0.999),
         eps=1e-08,
-        weight_decay=0,
+        weight_decay=5e-4,
     )
 
     best_val_loss = torch.inf
@@ -90,6 +90,7 @@ def train_classification_model(
 
         total_correct = 0.0
         total_loss = 0.0
+        net.train()
         for batch in train_loader:  # Get batch
             images, labels = batch  # Unpack the batch into images and labels
             images, labels = images.to(device), labels.to(device)
@@ -113,6 +114,7 @@ def train_classification_model(
             )
         )
 
+        net.eval()
         with torch.no_grad():
             val_loss = 0.0
             for batch in val_loader:
@@ -141,7 +143,7 @@ def train_classification_model(
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
         plt.legend(loc="upper right")
-        plt.savefig(loss_plot_path, format="svg")
+        plt.savefig(loss_plot_path)#, format="svg")
         plt.close()
 
     logging.info(">>> Training Complete >>>")
@@ -155,7 +157,7 @@ def classification_training_pipeline(
     colorspace,
     device,
     epochs=100,
-    lr=0.001,
+    lr=0.1,
     model_load_path: Path = None,
 ):
     if not isinstance(base_path, Path):
@@ -190,7 +192,7 @@ def classification_training_pipeline(
     train_loader, val_loader, test_loader, input_channels = load_data(
         dataset=dataset_name,
         colorspace=colorspace,
-        batch_size=16,
+        batch_size=64,
         train_prop=0.8,
         training_gan=False,
     )

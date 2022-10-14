@@ -13,7 +13,7 @@ dataset_channels = {"mnist": 1, "cifar": 3}
 dataset_root = Path.cwd() / "data"
 
 
-def load_data(dataset, colorspace, batch_size=16, train_prop=0.8, test_transforms=[], training_gan=False):
+def load_data(dataset, colorspace, batch_size=64, train_prop=0.8, test_transforms=[], training_gan=False):
     colorspace_transforms = colorspaces[colorspace]
     if training_gan:
         #loading the dataset

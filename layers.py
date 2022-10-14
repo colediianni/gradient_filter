@@ -48,7 +48,7 @@ class EuclideanColorInvariantConv2d(torch.nn.modules.conv._ConvNd):
         )  # add to initialize weights at mean pixel value
 
     def conv2d_forward(self, input, weight):
-        return rgb_conv2d(
+        return euclidean_conv2d(
             input,
             weight,
             self.bias,
@@ -62,7 +62,7 @@ class EuclideanColorInvariantConv2d(torch.nn.modules.conv._ConvNd):
         return self.conv2d_forward(input, self.weight)
 
 
-def rgb_conv2d(
+def euclidean_conv2d(
     input,
     weight,
     bias=None,
