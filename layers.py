@@ -250,7 +250,8 @@ def learned_ci_conv2d(
             color_mapping_model(image),
             color_mapping_model(image[:, :, pixel : pixel + 1, :]),
         )
-        # print(testing.shape)
+        print(testing.shape)
+        print(testing.min(), testing.max())
         # print(testing.sum(dim=3).shape)
         # print("testing", testing.shape) # [128, 961, 16, 8]
         comparison_image[:, :, :, pixel] = testing.sum(dim=3)
