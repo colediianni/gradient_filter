@@ -206,9 +206,9 @@ def learned_conv2d(
     dilation=(1, 1),
     groups=1,
 ):
-    print(input.shape)
+    # print(input.shape)
     input = mapping_model(input)
-    print(input.shape)
+    # print(input.shape)
     batch_size, in_channels, in_h, in_w = input.shape
     out_channels, kern_in_channels, kh, kw = weight.shape
     out_h = int((in_h - kh + 2 * padding[0]) / stride[0] + 1)
@@ -242,13 +242,12 @@ def learned_conv2d(
 
     # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
     for pixel in range(image.shape[2]):
-        testing = torch.square(
-            torch.sub(image, image[:, :, pixel : pixel + 1, :])
-        )
+        testing = torch.dot(image, image[:, :, pixel : pixel + 1, :]))
         # print("testing", testing.shape) # [128, 961, 16, 8]
-        comparison_image[:, :, :, pixel] = torch.sqrt(testing.sum(dim=3))
+        comparison_image[:, :, :, pixel] = testing
 
-    # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
+    print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
+    print(comparison_image.min(), comparison_image.max())
 
     first = comparison_image.flatten(2)
     # print("first", first.shape) # [128, 961, 256]
