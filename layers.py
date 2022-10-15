@@ -246,8 +246,8 @@ def learned_conv2d(
         # print("testing", testing.shape) # [128, 961, 16, 8]
         comparison_image[:, :, :, pixel] = testing.sum(dim=3)
 
-    print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
-    print(comparison_image.min(), comparison_image.max())
+    # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
+    # print(comparison_image.min(), comparison_image.max())
 
     first = comparison_image.flatten(2)
     # print("first", first.shape) # [128, 961, 256]
