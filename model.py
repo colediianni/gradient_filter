@@ -10,6 +10,7 @@ import torch.nn.parallel
 import torch.optim as optim
 import torchvision
 
+from augmentations import augmentations_dict
 from data import load_data
 from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d
 from test_cases import test
@@ -231,9 +232,51 @@ def classification_training_pipeline(
     )
 
 
-def classification_testing_pipeline(
-    base_path, model_type, dataset_name, device, model_load_path
-):
-    # empty/create new loss_plot_path file
+@torch.no_grad()
+def get_all_preds(model, loader, device):
+    all_preds = torch.tensor([]).to(device)
+    for batch in loader:
+        images, labels = batch
+        images, labels = images.to(device), labels.to(device)
 
-    test(network, test_loader, device)
+        preds = model(images)
+        all_preds = torch.cat((all_preds, preds), dim=0)
+
+    return all_preds
+
+
+def classification_testing_pipeline(base_path: Path,
+                                    model_type,
+                                    dataset_name,
+                                    colorspace,
+                                    device):
+    # TODO: setup model path same as training
+    # TODO: setup logger similar to training
+    # TODO: load network from model path
+    network.eval()
+
+    total_preds = 0
+    total_preds_correct = 0
+    for augmentation in augmentations_dict.keys():
+        # load dataset
+        train_loader, val_loader, test_loader, input_channels = load_data(
+            dataset=dataset_name,
+            colorspace=colorspace,
+            batch_size=64,
+            train_prop=0.8,
+            test_transforms=augmentation
+            training_gan=False,
+        )
+
+        test_preds = get_all_preds(network, test_loader, device)
+        actual_labels = torch.Tensor(test_loader.targets).to(device)
+        preds_correct = test_preds.argmax(dim=1).eq(actual_labels).sum().item()
+        total_preds_correct += total_preds_correct
+        total_preds += len(test_loader)
+
+        # TODO: save to logger
+        logging.info(f"total correct: {preds_correct}")
+        logging.info(f"accuracy: {preds_correct / len(test_loader)}")
+
+    # TODO: save to logger
+    logging.info(f"overall accuracy: {total_preds_correct / total_preds}")
