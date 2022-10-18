@@ -1,36 +1,34 @@
-from random import random
-
 import numpy as np
 import torch
 import torchvision.transforms.functional as transforms_functional
-from numpy.random import normal as gaussian_noise
 from torch import Tensor
 from torchvision import transforms
 
 
-class GaussianNoise(torch.nn.Module):
+class RandomBased(torch.nn.Module):
+    def __init__(self, *args, seed: int = 1, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.rng = np.random.default_rng(seed)
+
+
+class GaussianNoise(RandomBased):
     def __init__(
-        self,
-        loc: float = 0.0,
-        scale: float = 1.0,
+        self, *args, loc: float = 0.0, scale: float = 1.0, **kwargs
     ) -> None:
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self.loc = loc
         self.scale = scale
 
     def noise(self, size) -> np.ndarray:
-        return gaussian_noise(self.loc, self.scale, size=size)
+        return self.rng.normal(self.loc, self.scale, size=size)
 
     def forward(self, image: Tensor) -> Tensor:
         return image + self.noise(image.size())
 
 
-class SaltAndPepper(torch.nn.Module):
-    def __init__(
-        self,
-        p: float = 0.01,
-    ) -> None:
-        super().__init__()
+class SaltAndPepper(RandomBased):
+    def __init__(self, *args, p: float = 0.01, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
         self.p = p
 
     def forward(self, image: Tensor) -> Tensor:
@@ -39,33 +37,37 @@ class SaltAndPepper(torch.nn.Module):
             if image.dtype.is_floating_point
             else torch.iinfo(image.dtype)
         )
-        salt_value = dtype_info.max
-        pepper_value = dtype_info.min
+        salt_value = 1
+        pepper_value = 0
 
-        w, h, _c = image.size()
+        (
+            _c,
+            w,
+            h,
+        ) = image.size()
         for i in range(w):
             for j in range(h):
-                r = random()
+                r = self.rng.uniform()
                 if r < self.p / 2:
-                    image[i, j, :] = salt_value
+                    image[:, i, j] = salt_value
                 elif r < self.p:
-                    image[i, j, :] = pepper_value
+                    image[:, i, j] = pepper_value
         return image
 
 
-class PerPixelChannelPermutation(torch.nn.Module):
+class PerPixelChannelPermutation(RandomBased):
     def forward(self, image: Tensor) -> Tensor:
-        w, h, c = image.size()
+        c, w, h = image.size()
         for i in range(w):
             for j in range(h):
-                image[i, j, :] = image[i, j, np.random.permutation(c)]
+                image[:, i, j] = image[self.rng.permutation(c), i, j]
         return image
 
 
-class ChannelPermutation(torch.nn.Module):
+class ChannelPermutation(RandomBased):
     def forward(self, image: Tensor) -> Tensor:
-        _w, _h, c = image.size()
-        image[:, :, :] = image[:, :, np.random.permutation(c)]
+        c, _w, _h = image.size()
+        image[:, :, :] = image[self.rng.permutation(c), :, :]
         return image
 
 
@@ -74,47 +76,39 @@ class Invert(torch.nn.Module):
         return transforms_functional.invert(image)
 
 
-class HueShift(torch.nn.Module):
+class HueShift(RandomBased):
     def forward(self, image: Tensor) -> Tensor:
-        # TODO determine hue factor
-        return transforms_functional.adjust_hue(image, self.hue_factor)
+        hue_factor = self.rng.uniform(-0.5, 0.5)
+        return transforms_functional.adjust_hue(image, hue_factor)
 
 
-augmentations = {
+augmentations_dict = {
+    "none": [],
     "gaussian_noise": [
-        transforms.ToTensor(),
-        GaussianNoise(),
+        GaussianNoise(scale=0.002),
     ],
     "gaussian_blur": [
-        transforms.ToTensor(),
         transforms.GaussianBlur(kernel_size=(3, 3)),
     ],
     "color_jitter": [
-        transforms.ToTensor(),
         transforms.ColorJitter(),
     ],
     "salt_and_pepper": [
-        transforms.ToTensor(),
         SaltAndPepper(),
     ],
     "per_pixel_channel_permutation": [
-        transforms.ToTensor(),
         PerPixelChannelPermutation(),
     ],
     "channel_permutation": [
-        transforms.ToTensor(),
         ChannelPermutation(),
     ],
     "invert": [
-        transforms.ToTensor(),
         Invert(),
     ],
     "hue_shift": [
-        transforms.ToTensor(),
         HueShift(),
     ],
     "grayscale": [
-        transforms.ToTensor(),
         transforms.Grayscale(num_output_channels=3),
     ],
 }

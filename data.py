@@ -12,22 +12,44 @@ dataset_channels = {"mnist": 1, "cifar": 3}
 
 dataset_root = Path.cwd() / "data"
 
+from augmentations import augmentations_dict
 
-def load_data(dataset, colorspace, batch_size=64, train_prop=0.8, test_transforms=[], training_gan=False):
+
+def load_data(
+    dataset,
+    colorspace,
+    batch_size=64,
+    train_prop=0.8,
+    test_augmentation="none",
+    training_gan=False,
+):
     colorspace_transforms = colorspaces[colorspace]
+    test_augmentations = augmentations_dict[test_augmentation]
     if training_gan:
-        #loading the dataset
+        # loading the dataset
         colorspace_transforms = colorspace_transforms + [transforms.Resize(64)]
-        dataset_loader = dataset_dict[dataset](root="./data", download=True,
-                                   transform=transforms.Compose(colorspace_transforms))
-        data_loader = torch.utils.data.DataLoader(dataset_loader, batch_size=batch_size,
-                                                 shuffle=True, num_workers=2)
+        dataset_loader = dataset_dict[dataset](
+            root="./data",
+            download=True,
+            transform=transforms.Compose(colorspace_transforms),
+        )
+        data_loader = torch.utils.data.DataLoader(
+            dataset_loader, batch_size=batch_size, shuffle=True, num_workers=2
+        )
         return data_loader, dataset_channels[dataset]
     else:
-        colorspace_train_transforms = [transforms.RandomCrop(32, padding=4), transforms.RandomHorizontalFlip()] + colorspace_transforms
-        colorspace_test_transforms = test_transforms + colorspace_transforms
+        colorspace_train_transforms = [
+            transforms.RandomCrop(32, padding=4),
+            transforms.RandomHorizontalFlip(),
+        ] + colorspace_transforms
+        test_transforms = test_augmentations + colorspace_train_transforms
 
-        train_set = dataset_dict[dataset](root = './data', train=True,  transform=transforms.Compose(colorspace_train_transforms), download=True)
+        train_set = dataset_dict[dataset](
+            root="./data",
+            train=True,
+            transform=transforms.Compose(colorspace_train_transforms),
+            download=True,
+        )
 
         train_size = int(train_prop * len(train_set))
         valid_size = len(train_set) - train_size
@@ -42,7 +64,14 @@ def load_data(dataset, colorspace, batch_size=64, train_prop=0.8, test_transform
             valid_dataset, batch_size=batch_size, shuffle=True, num_workers=2
         )
 
-        test_set = dataset_dict[dataset](root = './data', train=False, transform=transforms.Compose(colorspace_test_transforms), download=True)
-        test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False, num_workers=2)
+        test_set = dataset_dict[dataset](
+            root="./data",
+            train=False,
+            transform=transforms.Compose(test_transforms),
+            download=True,
+        )
+        test_loader = torch.utils.data.DataLoader(
+            test_set, batch_size=batch_size, shuffle=False, num_workers=2
+        )
 
         return train_loader, val_loader, test_loader, dataset_channels[dataset]
