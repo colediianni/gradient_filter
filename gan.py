@@ -134,7 +134,7 @@ def train_normal_ci_gan(base_path: Path,
         colorspace=colorspace,
         batch_size=128,
         train_prop=0.8,
-        training_gan=False
+        training_gan=True
     )
 
     #checking the availability of cuda devices
