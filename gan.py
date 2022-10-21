@@ -4,7 +4,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import os
 import torch
-import torch.backends.cudnn as cudnn
+# import torch.backends.cudnn as cudnn
 import torch.nn.functional as F
 import torch.nn.parallel
 import torch.optim as optim
@@ -18,7 +18,7 @@ from data import load_data
 from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d
 from test_cases import test
 
-cudnn.benchmark = True
+# cudnn.benchmark = True
 
 # custom weights initialization called on netG and netD
 def weights_init(m):
@@ -165,12 +165,9 @@ def train_normal_ci_gan(base_path: Path,
     g_loss = []
     d_loss = []
 
-
-    # TODO: keep converting from here!!
-
-
     for epoch in range(epochs):
         for i, data in enumerate(dataloader, 0):
+            print("here1")
             ############################
             # (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
             ###########################
@@ -185,6 +182,7 @@ def train_normal_ci_gan(base_path: Path,
             errD_real.backward()
             D_x = output.mean().item()
 
+            print("here2")
             # train with fake
             noise = torch.randn(batch_size, nz, 1, 1, device=device)
             fake = netG(noise)
@@ -196,6 +194,7 @@ def train_normal_ci_gan(base_path: Path,
             errD = errD_real + errD_fake
             optimizerD.step()
 
+            print("here3")
             ############################
             # (2) Update G network: maximize log(D(G(z)))
             ###########################
@@ -230,7 +229,7 @@ def train_normal_ci_gan(base_path: Path,
 
 
         # save latest
-
+        print("here4")
         if epoch % 5 == 0:
             g_model_save_path = (
                 base_path
