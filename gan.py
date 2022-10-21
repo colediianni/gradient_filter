@@ -30,7 +30,7 @@ def weights_init(m):
         m.bias.data.fill_(0)
 
 class Generator(nn.Module):
-    def __init__(self, ngpu, nz, ngf):
+    def __init__(self, ngpu, nz, ngf, nc):
         super(Generator, self).__init__()
         self.ngpu = ngpu
         self.main = nn.Sequential(
@@ -64,7 +64,7 @@ class Generator(nn.Module):
             return output
 
 class Discriminator(nn.Module):
-    def __init__(self, ngpu, ndf):
+    def __init__(self, ngpu, ndf, nc):
         super(Discriminator, self).__init__()
         self.ngpu = ngpu
         self.main = nn.Sequential(
@@ -148,10 +148,10 @@ def train_normal_ci_gan(base_path: Path,
     #number of discriminator filters
     ndf = 64
 
-    netG = Generator(ngpu, nz, ngf).to(device)
+    netG = Generator(ngpu, nz, ngf, nc).to(device)
     netG.apply(weights_init)
 
-    netD = Discriminator(ngpu, ndf).to(device)
+    netD = Discriminator(ngpu, ndf, nc).to(device)
     netD.apply(weights_init)
 
     # setup optimizer
