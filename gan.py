@@ -103,7 +103,6 @@ def train_normal_ci_gan(base_path: Path,
     model_type,
     dataset_name,
     colorspace,
-    model_load_path,
     device,
     D_criterion = nn.BCELoss(),
     G_criterion = nn.BCELoss(),
@@ -112,9 +111,6 @@ def train_normal_ci_gan(base_path: Path,
 
     if not isinstance(base_path, Path):
         base_path = Path(base_path)
-
-    if not isinstance(model_load_path, Path):
-        model_load_path = Path(model_load_path)
 
     output_file = (
         base_path
