@@ -15,7 +15,7 @@ import torch.utils.data
 import torchvision.utils as vutils
 
 from data import load_data
-from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d
+from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d, SquaredEuclideanColorInvariantConv2d
 from test_cases import test
 cudnn.benchmark = True
 
