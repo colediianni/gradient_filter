@@ -38,9 +38,9 @@ def train_normal_ci_gan(base_path: Path,
             m.weight.data.normal_(1.0, 0.02)
             m.bias.data.fill_(0)
 
-    class Generator(nn.Module):
+    class Generator_test(nn.Module):
         def __init__(self, ngpu, nz, ngf, nc):
-            super(Generator, self).__init__()
+            super(Generator_test, self).__init__()
             self.ngpu = ngpu
             self.nz = nz
             self.ngf = ngf
@@ -81,7 +81,7 @@ def train_normal_ci_gan(base_path: Path,
             self.ngpu = ngpu
             self.main = nn.Sequential(
                 # input is (nc) x 64 x 64
-                EuclideanColorInvariantConv2d(nc, ndf, 4, 2, 1, bias=False),
+                nn.SquaredEuclideanColorInvariantConv2d(nc, ndf, 4, 2, 1, bias=False),
                 nn.LeakyReLU(0.2, inplace=True),
                 # state size. (ndf) x 32 x 32
                 nn.Conv2d(ndf, ndf * 2, 4, 2, 1, bias=False),
@@ -131,7 +131,7 @@ def train_normal_ci_gan(base_path: Path,
     dataloader, nc = load_data(
         dataset=dataset_name,
         colorspace=colorspace,
-        batch_size=128,
+        batch_size=32,
         train_prop=0.8,
         training_gan=True
     )
@@ -139,6 +139,7 @@ def train_normal_ci_gan(base_path: Path,
     #checking the availability of cuda devices
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
+    nc=3
     # number of gpu's available
     ngpu = 1
     # input noise dimension
@@ -148,7 +149,7 @@ def train_normal_ci_gan(base_path: Path,
     #number of discriminator filters
     ndf = 64
 
-    netG = Generator(ngpu=ngpu, nz=nz, ngf=ngf, nc=nc).to(device)
+    netG = Generator_test(ngpu=ngpu, nz=nz, ngf=ngf, nc=nc).to(device)
     netG.apply(weights_init)
 
     netD = Discriminator(ngpu, ndf, nc).to(device)
@@ -167,7 +168,6 @@ def train_normal_ci_gan(base_path: Path,
 
     for epoch in range(epochs):
         for i, data in enumerate(dataloader, 0):
-            print("here1")
             ############################
             # (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
             ###########################
@@ -182,7 +182,6 @@ def train_normal_ci_gan(base_path: Path,
             errD_real.backward()
             D_x = output.mean().item()
 
-            print("here2")
             # train with fake
             noise = torch.randn(batch_size, nz, 1, 1, device=device)
             fake = netG(noise)
@@ -194,7 +193,6 @@ def train_normal_ci_gan(base_path: Path,
             errD = errD_real + errD_fake
             optimizerD.step()
 
-            print("here3")
             ############################
             # (2) Update G network: maximize log(D(G(z)))
             ###########################
@@ -227,9 +225,7 @@ def train_normal_ci_gan(base_path: Path,
                 )
                 vutils.save_image(fake.detach(),generated_image_path,normalize=False)
 
-
         # save latest
-        print("here4")
         if epoch % 5 == 0:
             g_model_save_path = (
                 base_path
