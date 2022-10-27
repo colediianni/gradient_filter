@@ -27,7 +27,8 @@ def train_normal_ci_gan(base_path: Path,
     D_criterion = nn.BCELoss(),
     G_criterion = nn.BCELoss(),
     epochs=25,
-    lr=0.001):
+    g_lr=0.0003,
+    d_lr=0.0001):
 
     # custom weights initialization called on netG and netD
     def weights_init(m):
@@ -156,8 +157,8 @@ def train_normal_ci_gan(base_path: Path,
     netD.apply(weights_init)
 
     # setup optimizer
-    optimizerD = optim.Adam(netD.parameters(), lr=0.0001, betas=(0.5, 0.999))
-    optimizerG = optim.Adam(netG.parameters(), lr=0.0002, betas=(0.5, 0.999))
+    optimizerD = optim.Adam(netD.parameters(), lr=d_lr, betas=(0.5, 0.999))
+    optimizerG = optim.Adam(netG.parameters(), lr=g_lr, betas=(0.5, 0.999))
 
     fixed_noise = torch.randn(128, nz, 1, 1, device=device)
     real_label = 1
@@ -185,7 +186,6 @@ def train_normal_ci_gan(base_path: Path,
             # train with fake
             noise = torch.randn(batch_size, nz, 1, 1, device=device)
 
-
             # Note: Output must be clipped to valid range because discriminator does not know valid range anymore (would accept negative pixel values if given)
 
             fake = torch.clip(netG(noise), 0, 1)
@@ -208,11 +208,10 @@ def train_normal_ci_gan(base_path: Path,
             D_G_z2 = output.mean().item()
             optimizerG.step()
 
-            print('[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f' % (epoch, epochs, i, len(dataloader), errD.item(), errG.item(), D_x, D_G_z1, D_G_z2))
-            logging.info('[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f' % (epoch, epochs, i, len(dataloader), errD.item(), errG.item(), D_x, D_G_z1, D_G_z2))
-
             #save the output
             if i % 100 == 0:
+                print('[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f' % (epoch, epochs, i, len(dataloader), errD.item(), errG.item(), D_x, D_G_z1, D_G_z2))
+                logging.info('[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f' % (epoch, epochs, i, len(dataloader), errD.item(), errG.item(), D_x, D_G_z1, D_G_z2))
                 normal_image_path = (
                     base_path
                     / "images"
