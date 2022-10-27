@@ -81,7 +81,7 @@ def train_normal_ci_gan(base_path: Path,
             self.ngpu = ngpu
             self.main = nn.Sequential(
                 # input is (nc) x 64 x 64
-                nn.SquaredEuclideanColorInvariantConv2d(nc, ndf, 4, 2, 1, bias=False),
+                SquaredEuclideanColorInvariantConv2d(nc, ndf, 4, 2, 1, bias=False),
                 nn.LeakyReLU(0.2, inplace=True),
                 # state size. (ndf) x 32 x 32
                 nn.Conv2d(ndf, ndf * 2, 4, 2, 1, bias=False),
