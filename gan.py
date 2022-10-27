@@ -221,7 +221,9 @@ def train_normal_ci_gan(base_path: Path,
                 print('saving the output')
                 logging.info('saving the output')
                 vutils.save_image(real_cpu,normal_image_path,normalize=False)
-                fake = torch.clip(netG(fixed_noise), 0, 1)
+                # fake = torch.clip(netG(fixed_noise), 0, 1)
+                fake = netG(fixed_noise)
+                fake = (fake - fake.min())/(fake.max() - fake.min())
                 generated_image_path = (
                     base_path
                     / "images"
