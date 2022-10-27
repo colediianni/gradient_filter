@@ -187,8 +187,9 @@ def train_normal_ci_gan(base_path: Path,
             noise = torch.randn(batch_size, nz, 1, 1, device=device)
 
             # Note: Output must be clipped to valid range because discriminator does not know valid range anymore (would accept negative pixel values if given)
+            # fake = torch.clip(netG(noise), 0, 1)
 
-            fake = torch.clip(netG(noise), 0, 1)
+            fake = netG(noise)
             label.fill_(fake_label)
             output = netD(fake.detach())
             errD_fake = D_criterion(output, label)
