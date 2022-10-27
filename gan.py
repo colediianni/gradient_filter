@@ -15,7 +15,7 @@ import torch.utils.data
 import torchvision.utils as vutils
 
 from data import load_data
-from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d, SquaredEuclideanColorInvariantConv2d
+from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d, SquaredEuclideanColorInvariantConv2d, AbsColorInvariantConv2d
 from test_cases import test
 cudnn.benchmark = True
 
@@ -82,7 +82,7 @@ def train_normal_ci_gan(base_path: Path,
             self.ngpu = ngpu
             self.main = nn.Sequential(
                 # input is (nc) x 64 x 64
-                SquaredEuclideanColorInvariantConv2d(nc, ndf, 4, 2, 1, bias=False),
+                AbsColorInvariantConv2d(nc, ndf, 4, 2, 1, bias=False),
                 nn.LeakyReLU(0.2, inplace=True),
                 # state size. (ndf) x 32 x 32
                 nn.Conv2d(ndf, ndf * 2, 4, 2, 1, bias=False),
