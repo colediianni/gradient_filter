@@ -26,6 +26,7 @@ def train_normal_ci_gan(base_path: Path,
     device,
     D_criterion = nn.BCELoss(),
     G_criterion = nn.BCELoss(),
+    color_regularizer = 0,
     epochs=25,
     g_lr=0.0003,
     d_lr=0.0001):
@@ -204,7 +205,9 @@ def train_normal_ci_gan(base_path: Path,
             netG.zero_grad()
             label.fill_(real_label)  # fake labels are real for generator cost
             output = netD(fake)
-            errG = G_criterion(output, label)
+            fake_colors = fake.permute([0, 2, 3, 1]).flatten(start_dim=0, end_dim=2)
+            target_colors = (torch.round(torch.rand(size=fake_colors.shape)*255)/255).to(device)
+            errG = G_criterion(output, label) + color_regularizer(fake_colors, target_colors)
             errG.backward()
             D_G_z2 = output.mean().item()
             optimizerG.step()
