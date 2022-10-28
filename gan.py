@@ -132,8 +132,8 @@ def train_normal_ci_gan(base_path: Path,
     dataloader, nc = load_data(
         dataset=dataset_name,
         colorspace=colorspace,
-        batch_size=32,
-        train_prop=0.8,
+        batch_size=128,
+        train_prop=1,
         training_gan=True
     )
 
