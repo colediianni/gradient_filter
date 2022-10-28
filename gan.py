@@ -27,7 +27,9 @@ def train_normal_ci_gan(base_path: Path,
     D_criterion = nn.BCELoss(),
     G_criterion = nn.BCELoss(),
     color_regularizer = 0,
+    regularization_lambda=1,
     epochs=25,
+    batch_size=128,
     g_lr=0.0003,
     d_lr=0.0001):
 
@@ -133,7 +135,7 @@ def train_normal_ci_gan(base_path: Path,
     dataloader, nc = load_data(
         dataset=dataset_name,
         colorspace=colorspace,
-        batch_size=128,
+        batch_size=batch_size,
         train_prop=1,
         training_gan=True
     )
@@ -207,7 +209,11 @@ def train_normal_ci_gan(base_path: Path,
             output = netD(fake)
             fake_colors = fake.permute([0, 2, 3, 1]).flatten(start_dim=0, end_dim=2)
             target_colors = (torch.round(torch.rand(size=fake_colors.shape)*255)/255).to(device)
-            errG = G_criterion(output, label) + color_regularizer(fake_colors, target_colors)
+            c = (regularization_lambda * color_regularizer(fake_colors, target_colors))
+            print(c)
+            l = G_criterion(output, label)
+            print(l)
+            errG = l + c
             errG.backward()
             D_G_z2 = output.mean().item()
             optimizerG.step()
