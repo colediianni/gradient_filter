@@ -25,13 +25,14 @@ def train_normal_ci_gan(base_path: Path,
     colorspace,
     device,
     D_criterion = nn.BCELoss(),
+    C_criterion = nn.BCELoss(),
     G_criterion = nn.BCELoss(),
-    color_regularizer = 0,
     regularization_lambda=1,
     epochs=25,
     batch_size=128,
     g_lr=0.0003,
-    d_lr=0.0001):
+    d_lr=0.0001,
+    c_lr=0.0001):
 
     # custom weights initialization called on netG and netD
     def weights_init(m):
@@ -42,9 +43,9 @@ def train_normal_ci_gan(base_path: Path,
             m.weight.data.normal_(1.0, 0.02)
             m.bias.data.fill_(0)
 
-    class Generator_test(nn.Module):
+    class Generator(nn.Module):
         def __init__(self, ngpu, nz, ngf, nc):
-            super(Generator_test, self).__init__()
+            super(Generator, self).__init__()
             self.ngpu = ngpu
             self.nz = nz
             self.ngf = ngf
@@ -112,6 +113,31 @@ def train_normal_ci_gan(base_path: Path,
 
             return output.view(-1, 1).squeeze(1)
 
+    class Color_Discriminator(nn.Module):
+        def __init__(self, num_pixels, nc=3):
+            super(Color_Discriminator, self).__init__()
+            self.main = nn.Sequential(
+                # input is (nc) x 64 x 64
+                nn.Linear(num_pixels, 1000),
+                nn.LeakyReLU(0.2, inplace=True),
+                nn.Linear(1000, 1000),
+                nn.LeakyReLU(0.2, inplace=True),
+                nn.Linear(1000, 2),
+                nn.Sigmoid()
+            )
+
+        def forward(self, input):
+            print(input.shape)
+            input = torch.sort(input)
+            print("input", input)
+            if input.is_cuda and self.ngpu > 1:
+                output = nn.parallel.data_parallel(self.main, input, range(self.ngpu))
+            else:
+                output = self.main(input)
+
+            print("output", output.shape)
+            return output
+
     if not isinstance(base_path, Path):
         base_path = Path(base_path)
 
@@ -139,6 +165,9 @@ def train_normal_ci_gan(base_path: Path,
         train_prop=1,
         training_gan=True
     )
+    sample = next(iter(dataloader))
+    sample_dims = sample[0].shape
+    total_pixels_per_batch = sample_dims[0] * sample_dims[2] * sample_dims[3]
 
     #checking the availability of cuda devices
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -153,14 +182,18 @@ def train_normal_ci_gan(base_path: Path,
     #number of discriminator filters
     ndf = 64
 
-    netG = Generator_test(ngpu=ngpu, nz=nz, ngf=ngf, nc=nc).to(device)
+    netG = Generator(ngpu=ngpu, nz=nz, ngf=ngf, nc=nc).to(device)
     netG.apply(weights_init)
+
+    netC = Color_Discriminator(num_pixels=total_pixels_per_batch, nc=nc).to(device)
+    # netC.apply(weights_init)
 
     netD = Discriminator(ngpu, ndf, nc).to(device)
     netD.apply(weights_init)
 
     # setup optimizer
     optimizerD = optim.Adam(netD.parameters(), lr=d_lr, betas=(0.5, 0.999))
+    optimizerC = optim.Adam(netC.parameters(), lr=c_lr, betas=(0.5, 0.999))
     optimizerG = optim.Adam(netG.parameters(), lr=g_lr, betas=(0.5, 0.999))
 
     fixed_noise = torch.randn(128, nz, 1, 1, device=device)
@@ -202,26 +235,44 @@ def train_normal_ci_gan(base_path: Path,
             optimizerD.step()
 
             ############################
+            # (1) Update C network
+            ###########################
+            # train with real
+            netC.zero_grad()
+            target_colors = (torch.round(torch.rand(fake.shape)*255)/255).to(device)
+            label = torch.full((batch_size,), real_label, device=device).float()
+            errC_real = C_criterion(target_colors, label)
+            errC_real.backward()
+            C_x = output.mean().item()
+
+            # train with fake
+
+            label.fill_(fake_label)
+            output = netC(fake.detach())
+            errC_fake = C_criterion(output, label)
+            errC_fake.backward()
+            C_G_z1 = output.mean().item()
+            errC = errC_real + errC_fake
+            optimizerC.step()
+
+            ############################
             # (2) Update G network: maximize log(D(G(z)))
             ###########################
             netG.zero_grad()
             label.fill_(real_label)  # fake labels are real for generator cost
-            output = netD(fake)
-            fake_colors = fake.permute([0, 2, 3, 1]).flatten(start_dim=0, end_dim=2)
-            target_colors = (torch.round(torch.rand(size=fake_colors.shape)*255)/255).to(device)
-            c = (regularization_lambda * color_regularizer(fake_colors, target_colors))
-            print(c)
-            l = G_criterion(output, label)
-            print(l)
-            errG = l + c
+            color_output = netC(fake)
+            consistency_output = netD(fake)
+            color_loss = G_criterion(color_output, label)
+            consistency_loss = G_criterion(consistency_output, label)
+            errG = consistency_loss + (regularization_lambda * color_loss)
             errG.backward()
             D_G_z2 = output.mean().item()
             optimizerG.step()
 
             #save the output
             if i % 100 == 0:
-                print('[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f' % (epoch, epochs, i, len(dataloader), errD.item(), errG.item(), D_x, D_G_z1, D_G_z2))
-                logging.info('[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f' % (epoch, epochs, i, len(dataloader), errD.item(), errG.item(), D_x, D_G_z1, D_G_z2))
+                print('[%d/%d][%d/%d] Loss_D: %.4f Loss_C: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f' % (epoch, epochs, i, len(dataloader), errD.item(), errC.item(), errG.item(), D_x, D_G_z1, D_G_z2))
+                logging.info('[%d/%d][%d/%d] Loss_D: %.4f Loss_C: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f' % (epoch, epochs, i, len(dataloader), errD.item(), errC.item(), errG.item(), D_x, D_G_z1, D_G_z2))
                 normal_image_path = (
                     base_path
                     / "images"
