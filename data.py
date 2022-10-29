@@ -34,7 +34,7 @@ def load_data(
             transform=transforms.Compose(colorspace_transforms),
         )
         data_loader = torch.utils.data.DataLoader(
-            dataset_loader, batch_size=batch_size, shuffle=True, num_workers=2
+            dataset_loader, batch_size=batch_size, shuffle=True, num_workers=2, drop_last=True
         )
         return data_loader, dataset_channels[dataset]
     else:
