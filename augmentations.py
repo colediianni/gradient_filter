@@ -101,10 +101,11 @@ class remove_color(torch.nn.Module):
         inp_unf = inp_unf.transpose(1, 2)
         inp_unf = inp_unf.reshape((image.shape[0], -1, 3, image.shape[2], image.shape[3]))
         inp_unf = inp_unf.permute([0, 1, 3, 4, 2])
+        print(print("inp_unf3.5")
         gradient_image = torch.zeros(image.shape[0], inp_unf.shape[1], inp_unf.shape[2], inp_unf.shape[3]).to(self.device)
         image = image.permute([0, 2, 3, 1])
         # print(gradient_image.shape)
-        print("inp_unf4", inp_unf.shape)
+        print("inp_unf4")
         # print(image.shape)
 
         for compare_shift in range(inp_unf.shape[1]):
