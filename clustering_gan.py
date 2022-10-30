@@ -257,7 +257,11 @@ def train_clustering_ci_gan(base_path: Path,
                 )
                 print('saving the output')
                 logging.info('saving the output')
-                vutils.save_image(real_cpu,normal_image_path,normalize=False)
+
+
+                # vutils.save_image(real_cpu,normal_image_path,normalize=False)
+
+
                 # fake = torch.clip(netG(fixed_noise), 0, 1)
                 fake = netG(fixed_noise)
                 fake = torch.clip((fake - fake.min()), 0, 1)
@@ -266,7 +270,8 @@ def train_clustering_ci_gan(base_path: Path,
                     / "images"
                     / (f"gan_{model_type}_{dataset_name}_{colorspace}_{epoch}.png")
                 )
-                vutils.save_image(fake.detach(),generated_image_path,normalize=False)
+
+                # vutils.save_image(fake.detach(),generated_image_path,normalize=False)
 
         # save latest
         if epoch % 5 == 0:
