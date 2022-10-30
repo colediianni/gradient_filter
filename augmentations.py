@@ -84,8 +84,8 @@ class HueShift(RandomBased):
 
 
 class remove_color(torch.nn.Module):
-    def __init__(self, *args, receptive_field: int = 1, **kwargs) -> Tensor:
-        super().__init__(*args, **kwargs)
+    def __init__(self, receptive_field: int = 1) -> Tensor:
+        super().__init__()
     # def __init__(self, receptive_field: int = 1) -> Tensor:
         self.receptive_field = receptive_field
         self.padding = torchvision.transforms.Pad(self.receptive_field, fill=torch.inf, padding_mode='constant')
