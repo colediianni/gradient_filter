@@ -91,12 +91,13 @@ class remove_color(torch.nn.Module):
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     def forward(self, image: Tensor) -> Tensor:
-        print(image.shape)
+        print("image1", image.shape)
         image = image.unsqueeze(0)
-        print(image.shape)
+        print("image2", image.shape)
         input = self.padding(image)
         unfold = torch.nn.Unfold(kernel_size=(image.shape[2], image.shape[3]), padding=0, stride=1)
         inp_unf = unfold(input)
+        print("inp_unf", inp_unf.shape)
         image = inp_unf.transpose(1, 2)
         image = image.reshape((image.shape[0], -1, 3, image.shape[2], image.shape[3]))
         image = image.permute([0, 1, 3, 4, 2])
@@ -107,7 +108,7 @@ class remove_color(torch.nn.Module):
         gradient_image[gradient_image.isnan()] = 0
         gradient_image[gradient_image.isinf()] = 0
         gradient_image = gradient_image.squeeze()
-        print(gradient_image.shape)
+        print("gradient_image", gradient_image.shape)
 
         return gradient_image
 
