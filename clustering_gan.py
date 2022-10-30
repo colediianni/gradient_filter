@@ -174,7 +174,7 @@ def train_clustering_ci_gan(base_path: Path,
     #checking the availability of cuda devices
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    nc=(1+(2*pixel_field_of_view))^2
+    nc=(1+(2*pixel_field_of_view))*(1+(2*pixel_field_of_view))
     # number of gpu's available
     ngpu = 1
     # input noise dimension
