@@ -88,7 +88,7 @@ class remove_color(torch.nn.Module):
         super().__init__()
         self.receptive_field = receptive_field
         self.padding = torchvision.transforms.Pad(self.receptive_field, fill=torch.inf, padding_mode='constant')
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        # self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     def forward(self, image: Tensor) -> Tensor:
         # print("image1", image.shape)
@@ -102,7 +102,7 @@ class remove_color(torch.nn.Module):
         inp_unf = inp_unf.reshape((image.shape[0], -1, 3, image.shape[2], image.shape[3]))
         inp_unf = inp_unf.permute([0, 1, 3, 4, 2])
         print("inp_unf3.5")
-        gradient_image = torch.zeros(image.shape[0], inp_unf.shape[1], inp_unf.shape[2], inp_unf.shape[3], device=self.device)
+        gradient_image = torch.zeros(image.shape[0], inp_unf.shape[1], inp_unf.shape[2], inp_unf.shape[3])
         print("inp_unf3.75")
         image = image.permute([0, 2, 3, 1])
         # print(gradient_image.shape)
