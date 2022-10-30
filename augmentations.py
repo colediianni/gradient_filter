@@ -94,18 +94,19 @@ class remove_color(torch.nn.Module):
         print("image1", image.shape)
         image = image.unsqueeze(0)
         print("image2", image.shape)
-        input = self.padding(image)
+        padded_input = self.padding(image)
         unfold = torch.nn.Unfold(kernel_size=(image.shape[2], image.shape[3]), padding=0, stride=1)
-        inp_unf = unfold(input)
+        inp_unf = unfold(padded_input)
         print("inp_unf", inp_unf.shape)
-        image = inp_unf.transpose(1, 2)
-        print("image3", image.shape)
-        image = image.reshape((image.shape[0], -1, 3, image.shape[2], image.shape[3]))
-        image = image.permute([0, 1, 3, 4, 2])
+        inp_unf = inp_unf.transpose(1, 2)
+        inp_unf = inp_unf.reshape((image.shape[0], -1, 3, image.shape[2], image.shape[3]))
+        inp_unf = inp_unf.permute([0, 1, 3, 4, 2])
         gradient_image = torch.zeros(image.shape[0], image.shape[1]*image.shape[1], image.shape[2], image.shape[3]).to(self.device)
 
-        for compare_shift in range(image.shape[1]):
-            gradient_image[:, compare_shift, :, :] = torch.abs(torch.sub(image, image[:, compare_shift, :, :])).sum(dim=-1)
+        gradient_image = torch.abs(torch.sub(image, inp_unf)).sum(dim=-1)
+
+        # for compare_shift in range(image.shape[1]):
+        #     gradient_image[:, compare_shift, :, :] = torch.abs(torch.sub(image, inp_unf[:, compare_shift, :, :])).sum(dim=-1)
         gradient_image[gradient_image.isnan()] = 0
         gradient_image[gradient_image.isinf()] = 0
         gradient_image = gradient_image.squeeze()
