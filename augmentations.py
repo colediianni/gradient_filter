@@ -91,22 +91,25 @@ class remove_color(torch.nn.Module):
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     def forward(self, image: Tensor) -> Tensor:
-        print("image1", image.shape)
+        # print("image1", image.shape)
         image = image.unsqueeze(0)
-        print("image2", image.shape)
-        padded_input = self.padding(image)
+        # print("image2", image.shape)
+        padding = torchvision.transforms.Pad(2, fill=torch.inf, padding_mode='constant')
+        padded_input = padding(image)
         unfold = torch.nn.Unfold(kernel_size=(image.shape[2], image.shape[3]), padding=0, stride=1)
         inp_unf = unfold(padded_input)
-        print("inp_unf", inp_unf.shape)
+        # print("inp_unf", inp_unf.shape)
         inp_unf = inp_unf.transpose(1, 2)
         inp_unf = inp_unf.reshape((image.shape[0], -1, 3, image.shape[2], image.shape[3]))
         inp_unf = inp_unf.permute([0, 1, 3, 4, 2])
-        # gradient_image = torch.zeros(image.shape[0], image.shape[1]*image.shape[1], image.shape[2], image.shape[3]).to(self.device)
+        gradient_image = torch.zeros(image.shape[0], inp_unf.shape[1], inp_unf.shape[2], inp_unf.shape[3]).to(device)
+        image = image.permute([0, 2, 3, 1])
+        # print(gradient_image.shape)
+        # print("inp_unf", inp_unf.shape)
+        # print(image.shape)
 
-        gradient_image = torch.abs(torch.sub(image, inp_unf)).sum(dim=-1)
-
-        # for compare_shift in range(image.shape[1]):
-        #     gradient_image[:, compare_shift, :, :] = torch.abs(torch.sub(image, inp_unf[:, compare_shift, :, :])).sum(dim=-1)
+        for compare_shift in range(inp_unf.shape[1]):
+            gradient_image[:, compare_shift, :, :] = torch.abs(torch.sub(image, inp_unf[:, compare_shift, :, :])).sum(dim=-1)
         gradient_image[gradient_image.isnan()] = 0
         gradient_image[gradient_image.isinf()] = 0
         gradient_image = gradient_image.squeeze()
