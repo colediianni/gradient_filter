@@ -91,6 +91,7 @@ class remove_color(torch.nn.Module):
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     def forward(self, image: Tensor) -> Tensor:
+        print(image.shape)
         input = self.padding(image)
         unfold = torch.nn.Unfold(kernel_size=(image.shape[2], image.shape[3]), padding=0, stride=1)
         inp_unf = unfold(input)
