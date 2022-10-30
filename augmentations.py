@@ -92,6 +92,8 @@ class remove_color(torch.nn.Module):
 
     def forward(self, image: Tensor) -> Tensor:
         print(image.shape)
+        image = image.unsqueeze(0)
+        print(image.shape)
         input = self.padding(image)
         unfold = torch.nn.Unfold(kernel_size=(image.shape[2], image.shape[3]), padding=0, stride=1)
         inp_unf = unfold(input)
@@ -104,6 +106,8 @@ class remove_color(torch.nn.Module):
             gradient_image[:, compare_shift, :, :] = torch.abs(torch.sub(image, image[:, compare_shift, :, :])).sum(dim=-1)
         gradient_image[gradient_image.isnan()] = 0
         gradient_image[gradient_image.isinf()] = 0
+        gradient_image = gradient_image.squeeze()
+        print(gradient_image.shape)
 
         return gradient_image
 
