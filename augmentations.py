@@ -83,7 +83,7 @@ class HueShift(RandomBased):
 
 
 class remove_color(RandomBased):
-    def __init__(self, *args, device, receptive_field: int = 1, **kwargs) -> None:
+    def __init__(self, *args, receptive_field: int = 1, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.receptive_field = receptive_field
         self.padding = torchvision.transforms.Pad(self.receptive_field, fill=torch.inf, padding_mode='constant')
