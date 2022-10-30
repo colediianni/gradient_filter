@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import torchvision
 import torchvision.transforms.functional as transforms_functional
 from torch import Tensor
 from torchvision import transforms
