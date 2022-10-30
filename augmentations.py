@@ -82,6 +82,30 @@ class HueShift(RandomBased):
         return transforms_functional.adjust_hue(image, hue_factor)
 
 
+class remove_color(RandomBased):
+    def __init__(self, *args, device, receptive_field: int = 1, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.receptive_field = receptive_field
+        self.padding = torchvision.transforms.Pad(self.receptive_field, fill=torch.inf, padding_mode='constant')
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+    def forward(self, image: Tensor) -> Tensor:
+        input = padding(image)
+        unfold = torch.nn.Unfold(kernel_size=(image.shape[2], image.shape[3]), padding=0, stride=1)
+        inp_unf = unfold(input)
+        image = inp_unf.transpose(1, 2)
+        image = image.reshape((image.shape[0], -1, 3, image.shape[2], image.shape[3]))
+        image = image.permute([0, 1, 3, 4, 2])
+        gradient_image = torch.zeros(image.shape[0], image.shape[1]*image.shape[1], image.shape[2], image.shape[3]).to(self.device)
+
+        for start_shift in range(image.shape[1]):
+          for compare_shift in range(image.shape[1]):
+            gradient_image[:, image.shape[1]*start_shift + compare_shift, :, :] = torch.abs(torch.sub(image[:, start_shift, :, :], image[:, compare_shift, :, :])).sum(dim=-1)
+        gradient_image[gradient_image.isnan()] = 0
+        gradient_image[gradient_image.isinf()] = 0
+
+        return gradient_image
+
 augmentations_dict = {
     "none": [],
     "gaussian_noise": [
@@ -111,4 +135,7 @@ augmentations_dict = {
     "grayscale": [
         transforms.Grayscale(num_output_channels=3),
     ],
+    "remove_color": [
+        remove_color(2)
+    ]
 }

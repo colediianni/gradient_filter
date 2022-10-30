@@ -19,20 +19,21 @@ from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d, S
 from test_cases import test
 cudnn.benchmark = True
 
-def train_normal_ci_gan(base_path: Path,
+def train_clustering_ci_gan(base_path: Path,
     model_type,
     dataset_name,
     colorspace,
     device,
+    pixel_field_of_view = 2,
     D_criterion = nn.BCELoss(),
-    C_criterion = nn.BCELoss(),
     G_criterion = nn.BCELoss(),
-    regularization_lambda=1,
     epochs=25,
     batch_size=128,
     g_lr=0.0003,
-    d_lr=0.0001,
-    c_lr=0.0001):
+    d_lr=0.0001):
+
+    # assuming first kernel size of discriminator is 4x4
+    # each pixel is converted to have distance between itself and neightbors up to pixel_field_of_view pixels away
 
     # custom weights initialization called on netG and netD
     def weights_init(m):
@@ -86,7 +87,7 @@ def train_normal_ci_gan(base_path: Path,
             self.ngpu = ngpu
             self.main = nn.Sequential(
                 # input is (nc) x 64 x 64
-                AbsColorInvariantConv2d(nc, ndf, 4, 2, 1, bias=False),
+                nn.Conv2d(nc, ndf, 4, 2, 1, bias=False),
                 nn.LeakyReLU(0.2, inplace=True),
                 # state size. (ndf) x 32 x 32
                 nn.Conv2d(ndf, ndf * 2, 4, 2, 1, bias=False),
@@ -172,7 +173,7 @@ def train_normal_ci_gan(base_path: Path,
     #checking the availability of cuda devices
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    nc=3
+    nc=(1+(2*pixel_field_of_view))^2
     # number of gpu's available
     ngpu = 1
     # input noise dimension
@@ -193,7 +194,6 @@ def train_normal_ci_gan(base_path: Path,
 
     # setup optimizer
     optimizerD = optim.Adam(netD.parameters(), lr=d_lr, betas=(0.5, 0.999))
-    optimizerC = optim.Adam(netC.parameters(), lr=c_lr, betas=(0.5, 0.999))
     optimizerG = optim.Adam(netG.parameters(), lr=g_lr, betas=(0.5, 0.999))
 
     fixed_noise = torch.randn(128, nz, 1, 1, device=device)
@@ -235,44 +235,20 @@ def train_normal_ci_gan(base_path: Path,
             optimizerD.step()
 
             ############################
-            # (1) Update C network
-            ###########################
-            # train with real
-            netC.zero_grad()
-            target_colors = (torch.round(torch.rand(fake.shape)*255)/255).to(device)
-            label = torch.full((batch_size,), real_label, device=device).float()
-            errC_real = C_criterion(target_colors, label)
-            errC_real.backward()
-            C_x = output.mean().item()
-
-            # train with fake
-
-            label.fill_(fake_label)
-            output = netC(fake.detach())
-            errC_fake = C_criterion(output, label)
-            errC_fake.backward()
-            C_G_z1 = output.mean().item()
-            errC = errC_real + errC_fake
-            optimizerC.step()
-
-            ############################
             # (2) Update G network: maximize log(D(G(z)))
             ###########################
             netG.zero_grad()
             label.fill_(real_label)  # fake labels are real for generator cost
-            color_output = netC(fake)
             consistency_output = netD(fake)
-            color_loss = C_criterion(color_output, label)
-            consistency_loss = G_criterion(consistency_output, label)
-            errG = consistency_loss + (regularization_lambda * color_loss)
+            errG = G_criterion(consistency_output, label)
             errG.backward()
             D_G_z2 = output.mean().item()
             optimizerG.step()
 
             #save the output
             if i % 100 == 0:
-                print('[%d/%d][%d/%d] Loss_D: %.4f Loss_C: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f' % (epoch, epochs, i, len(dataloader), errD.item(), errC.item(), errG.item(), D_x, D_G_z1, D_G_z2))
-                logging.info('[%d/%d][%d/%d] Loss_D: %.4f Loss_C: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f' % (epoch, epochs, i, len(dataloader), errD.item(), errC.item(), errG.item(), D_x, D_G_z1, D_G_z2))
+                print('[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f' % (epoch, epochs, i, len(dataloader), errD.item(), errG.item(), D_x, D_G_z1, D_G_z2))
+                logging.info('[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f' % (epoch, epochs, i, len(dataloader), errD.item(), errG.item(), D_x, D_G_z1, D_G_z2))
                 normal_image_path = (
                     base_path
                     / "images"
@@ -320,17 +296,3 @@ def train_normal_ci_gan(base_path: Path,
         # Check pointing for every epoch
         torch.save(netG.state_dict(), g_model_save_path)
         torch.save(netD.state_dict(), d_model_save_path)
-
-
-# What if we add a term to the normal GAN's loss function which encourages it to have a variety of colors!?!?
-# L = normal_gan_loss + (lambda * pixel_variation_of_generated_images) <- sum of pixel distance to all other pixels? covariance matrix? KL divergence between rgb cube and actual pixels?
-def gan():
-    pass
-
-
-# This is a generator which generates inputs directly into a ci discriminator
-# output painting is then needed to make a plottable image
-# proposed output painting: randomly choose border colors, then fill others based on distance to top, diag, and left pixels
-# will have problems since distances aren't guarenteed to be physically possible
-def total_ci_gan():
-    pass

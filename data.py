@@ -27,7 +27,7 @@ def load_data(
     test_augmentations = augmentations_dict[test_augmentation]
     if training_gan:
         # loading the dataset
-        colorspace_transforms = colorspace_transforms + [transforms.Resize(64)]
+        colorspace_transforms = colorspace_transforms + [transforms.Resize(64)] + test_augmentations
         dataset_loader = dataset_dict[dataset](
             root="./data",
             download=True,
