@@ -164,6 +164,7 @@ def train_clustering_ci_gan(base_path: Path,
         colorspace=colorspace,
         batch_size=batch_size,
         train_prop=1,
+        test_augmentation="remove_color",
         training_gan=True
     )
     sample = next(iter(dataloader))
