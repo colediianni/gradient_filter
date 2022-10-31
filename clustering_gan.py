@@ -14,7 +14,7 @@ import torch.optim as optim
 import torch.utils.data
 import torchvision.utils as vutils
 
-from data import load_data
+from data import load_data, load_data_gan
 from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d, SquaredEuclideanColorInvariantConv2d, AbsColorInvariantConv2d
 from test_cases import test
 cudnn.benchmark = True
@@ -159,13 +159,12 @@ def train_clustering_ci_gan(base_path: Path,
     logger.addHandler(stream_handler)
 
     # load dataset
-    dataloader, nc = load_data(
+    dataloader, nc = load_data_gan(
         dataset=dataset_name,
         colorspace=colorspace,
         batch_size=batch_size,
         train_prop=1,
         test_augmentation="remove_color",
-        training_gan=True
     )
     sample = next(iter(dataloader))
     sample_dims = sample[0].shape

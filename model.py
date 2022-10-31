@@ -1,8 +1,8 @@
 import logging
 from pathlib import Path
+from typing import Union
 
 import matplotlib.pyplot as plt
-import os
 import torch
 import torch.backends.cudnn as cudnn
 import torch.nn.functional as F
@@ -11,9 +11,9 @@ import torch.optim as optim
 import torchvision
 
 from augmentations import augmentations_dict
-from data import load_data
+from data import load_data, dataset_channels
 from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d
-from test_cases import test
+from utils import setup_logger
 
 
 def get_classification_model(
@@ -24,7 +24,7 @@ def get_classification_model(
 ):
     logging.info("==> Building model..")
     if model_type == "normal_resnet":
-        network = torchvision.models.resnet50(weights=None)
+        network = torchvision.models.resnet50()
         network.conv1 = torch.nn.Conv2d(
             input_channels,
             64,
@@ -34,7 +34,7 @@ def get_classification_model(
             bias=False,
         )
     elif model_type == "euclidean_diff_ci_resnet":
-        network = torchvision.models.resnet50(weights=None)
+        network = torchvision.models.resnet50()
         network.conv1 = EuclideanColorInvariantConv2d(
             input_channels,
             64,
@@ -44,7 +44,7 @@ def get_classification_model(
             bias=False,
         )
     elif model_type == "learned_diff_ci_resnet":
-        network = torchvision.models.resnet50(weights=None)
+        network = torchvision.models.resnet50()
         network.conv1 = LearnedColorInvariantConv2d(
             input_channels,
             64,
@@ -59,9 +59,11 @@ def get_classification_model(
         network = torch.nn.DataParallel(network)
         cudnn.benchmark = True
     if load_from_path is not None:
+        network = torch.nn.DataParallel(network)
         network.load_state_dict(
             torch.load(load_from_path, map_location=torch.device(device))
         )
+
     return network
 
 
@@ -75,10 +77,13 @@ def train_classification_model(
     epochs=100,
     lr=0.001,
 ):
-    optimizer = optim.SGD(network.parameters(), lr=lr,
-                      momentum=0.9, weight_decay=5e-4)
+    optimizer = optim.SGD(
+        network.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4
+    )
 
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=200
+    )
 
     best_val_loss = torch.inf
     train_loss_history = []
@@ -134,7 +139,7 @@ def train_classification_model(
                 # )
                 logging.info(
                     (
-                        f"Saving model",
+                        "Saving model",
                         f"val_correct: {val_correct}",
                         f"val_loss: {val_loss}",
                     )
@@ -146,11 +151,11 @@ def train_classification_model(
 
         plt.plot(train_loss_history, "-b", label="train")
         plt.plot(val_loss_history, "-r", label="val")
-        plt.title("Loss Histroy")
+        plt.title("Loss History")
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
         plt.legend(loc="upper right")
-        plt.savefig(loss_plot_path)#, format="svg")
+        plt.savefig(loss_plot_path)  # , format="svg")
         plt.close()
 
         scheduler.step()
@@ -160,7 +165,7 @@ def train_classification_model(
 
 
 def classification_training_pipeline(
-    base_path: Path,
+    base_path: Union[Path, str],
     model_type,
     dataset_name,
     colorspace,
@@ -186,24 +191,14 @@ def classification_training_pipeline(
         / (model_type + "_" + dataset_name + "_" + colorspace + ".txt")
     )
 
-    logger = logging.root
-    file_handler = logging.FileHandler(output_file, mode="w")
-    stream_handler = logging.StreamHandler()
-
-    logger.setLevel(logging.INFO)
-    file_handler.setLevel(logging.INFO)
-    stream_handler.setLevel(logging.INFO)
-
-    logger.addHandler(file_handler)
-    logger.addHandler(stream_handler)
+    setup_logger(output_file)
 
     # load datasets
-    train_loader, val_loader, test_loader, input_channels = load_data(
+    train_loader, val_loader, _test_loader, input_channels = load_data(
         dataset=dataset_name,
         colorspace=colorspace,
         batch_size=64,
         train_prop=0.8,
-        training_gan=False,
     )
 
     # load model
@@ -245,38 +240,79 @@ def get_all_preds(model, loader, device):
     return all_preds
 
 
-def classification_testing_pipeline(base_path: Path,
-                                    model_type,
-                                    dataset_name,
-                                    colorspace,
-                                    device):
-    # TODO: setup model path same as training
-    # TODO: setup logger similar to training
-    # TODO: load network from model path
+def classification_testing_pipeline(
+    base_path: Path, model_type, dataset_name, colorspace, device
+):
+
+    if not isinstance(base_path, Path):
+        base_path = Path(base_path)
+
+    model_save_path = (
+        base_path
+        / "models"
+        / (model_type + "_" + dataset_name + "_" + colorspace + ".pth")
+    )
+    output_file = (
+        base_path
+        / "logs"
+        / (model_type + "_" + dataset_name + "_" + colorspace + ".txt")
+    )
+
+    setup_logger(output_file)
+
+    logging.info("Now testing: %s in %s", model_type, colorspace)
+
+    input_channels = dataset_channels[dataset_name]
+
+    # load model
+    network = get_classification_model(
+        model_type,
+        device,
+        input_channels,
+        load_from_path=model_save_path,
+    )
+
     network.eval()
 
     total_preds = 0
     total_preds_correct = 0
-    for augmentation in augmentations_dict.keys():
+    for augmentation in [
+        "none",
+        "gaussian_noise",
+        "gaussian_blur",
+        "color_jitter",
+        "salt_and_pepper",
+        "per_pixel_channel_permutation",
+        "channel_permutation",
+        "invert",
+        "hue_shift",
+        "grayscale",
+    ]:
+        logging.info("with augmentation: %s", augmentation)
+
         # load dataset
-        train_loader, val_loader, test_loader, input_channels = load_data(
+        _train_loader, _val_loader, test_loader, _input_channels = load_data(
             dataset=dataset_name,
             colorspace=colorspace,
             batch_size=64,
             train_prop=0.8,
-            test_transforms=augmentation
-            training_gan=False,
+            test_augmentation=augmentation,
         )
 
-        test_preds = get_all_preds(network, test_loader, device)
-        actual_labels = torch.Tensor(test_loader.targets).to(device)
-        preds_correct = test_preds.argmax(dim=1).eq(actual_labels).sum().item()
-        total_preds_correct += total_preds_correct
+        preds_correct = 0
+        with torch.no_grad():
+            for batch in test_loader:
+                images, labels = batch
+
+                test_preds = network(images)
+                preds_correct += (
+                    test_preds.argmax(dim=1).eq(labels).sum().item()
+                )
+
+        logging.info("total correct: %s", preds_correct)
+        logging.info("accuracy: %s", preds_correct / len(test_loader))
+
+        total_preds_correct += preds_correct
         total_preds += len(test_loader)
 
-        # TODO: save to logger
-        logging.info(f"total correct: {preds_correct}")
-        logging.info(f"accuracy: {preds_correct / len(test_loader)}")
-
-    # TODO: save to logger
-    logging.info(f"overall accuracy: {total_preds_correct / total_preds}")
+    logging.info("overall accuracy: %s", total_preds_correct / total_preds)
