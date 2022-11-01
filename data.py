@@ -95,4 +95,5 @@ def load_data(
         test_set, batch_size=batch_size, shuffle=False, num_workers=2
     )
 
-    return train_loader, val_loader, test_loader, dataset_channels[dataset]
+    # return train_loader, val_loader, test_loader, dataset_channels[dataset]
+    return train_loader, val_loader, val_loader, dataset_channels[dataset]
