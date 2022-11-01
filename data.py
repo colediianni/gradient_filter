@@ -62,7 +62,7 @@ def load_data(
         [transforms.ToTensor()]
         + test_augmentations
         + [transforms.ToPILImage()]
-        + colorspace_train_transforms
+        + colorspace_transforms
     )
 
     train_set = dataset_dict[dataset](
