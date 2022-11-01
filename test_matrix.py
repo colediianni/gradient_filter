@@ -1,8 +1,10 @@
-from model import classification_testing_pipeline
+from torch import cuda
 
+from model import classification_testing_pipeline
 
 if __name__ == "__main__":
     dataset_name = "cifar"
+    device = "cuda" if cuda.is_available() else "cpu"
 
     for model_type in [
         "euclidean_diff_ci_resnet",
@@ -11,5 +13,5 @@ if __name__ == "__main__":
     ]:
         for colorspace in ["hsv", "lab", "rgb", "xyz"]:
             classification_testing_pipeline(
-                ".", model_type, dataset_name, colorspace, "cpu"
+                ".", model_type, dataset_name, colorspace, device
             )
