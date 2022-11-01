@@ -54,12 +54,11 @@ def get_classification_model(
             bias=False,
         )
 
+    network = torch.nn.DataParallel(network)
     network = network.to(device)
     if device == "cuda":
-        network = torch.nn.DataParallel(network)
         cudnn.benchmark = True
     if load_from_path is not None:
-        network = torch.nn.DataParallel(network)
         network.load_state_dict(
             torch.load(load_from_path, map_location=torch.device(device))
         )
@@ -258,6 +257,8 @@ def classification_testing_pipeline(
         / (model_type + "_" + dataset_name + "_" + colorspace + ".txt")
     )
 
+    print(model_save_path)
+
     setup_logger(output_file)
 
     logging.info("Now testing: %s in %s", model_type, colorspace)
@@ -273,6 +274,7 @@ def classification_testing_pipeline(
     )
 
     network.eval()
+    network = network.to(device)
 
     total_preds = 0
     total_preds_correct = 0
@@ -303,6 +305,8 @@ def classification_testing_pipeline(
         with torch.no_grad():
             for batch in test_loader:
                 images, labels = batch
+                images = images.to(device)
+                labels = labels.to(device)
 
                 test_preds = network(images)
                 preds_correct += (
