@@ -105,7 +105,7 @@ class remove_color(torch.nn.Module):
         for compare_shift in range(inp_unf.shape[1]):
             gradient_image[:, compare_shift, :, :] = torch.abs(torch.sub(image, inp_unf[:, compare_shift, :, :])).sum(dim=-1)
         gradient_image[gradient_image.isnan()] = torch.inf
-        gradient_image[gradient_image.isinf()] = 0
+        # gradient_image[gradient_image.isinf()] = 0
         gradient_image = gradient_image.squeeze()
 
         return gradient_image
