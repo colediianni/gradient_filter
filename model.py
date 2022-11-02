@@ -169,6 +169,7 @@ def classification_training_pipeline(
     dataset_name,
     colorspace,
     device,
+    batch_size=128,
     epochs=100,
     lr=0.001,
     model_load_path: Path = None,
@@ -196,7 +197,7 @@ def classification_training_pipeline(
     train_loader, val_loader, _test_loader, input_channels = load_data(
         dataset=dataset_name,
         colorspace=colorspace,
-        batch_size=64,
+        batch_size=batch_size,
         train_prop=0.8,
     )
 
