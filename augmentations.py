@@ -91,9 +91,6 @@ class remove_color(torch.nn.Module):
         self.distance_metric = distance_metric
 
     def forward(self, image: Tensor) -> Tensor:
-        # print("image1", image.shape)
-        image = image.unsqueeze(0)
-        # print("image2", image.shape)
         padded_input = self.padding(image)
         unfold = torch.nn.Unfold(kernel_size=(image.shape[2], image.shape[3]), padding=0, stride=1)
         inp_unf = unfold(padded_input)
