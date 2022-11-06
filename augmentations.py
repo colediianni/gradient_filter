@@ -84,7 +84,7 @@ class HueShift(RandomBased):
 
 
 class remove_color(torch.nn.Module):
-    def __init__(self, receptive_field: int = 1) -> Tensor:
+    def __init__(self, receptive_field: int = 1, distance_metric: str = "absolute") -> Tensor:
         super().__init__()
         self.receptive_field = receptive_field
         self.padding = torchvision.transforms.Pad(self.receptive_field, fill=torch.inf, padding_mode='constant')
@@ -103,7 +103,11 @@ class remove_color(torch.nn.Module):
         image = image.permute([0, 2, 3, 1])
 
         for compare_shift in range(inp_unf.shape[1]):
-            gradient_image[:, compare_shift, :, :] = torch.abs(torch.sub(image, inp_unf[:, compare_shift, :, :])).sum(dim=-1)
+            if distance_metric == "absolute":
+                gradient_image[:, compare_shift, :, :] = torch.abs(torch.sub(image, inp_unf[:, compare_shift, :, :])).sum(dim=-1)
+            elif distance_metric == "euclidean":
+                gradient_image[:, compare_shift, :, :] = torch.sqrt(torch.square(torch.sub(image, inp_unf[:, compare_shift, :, :])).sum(dim=-1))
+
         gradient_image[gradient_image.isnan()] = torch.inf
         # gradient_image[gradient_image.isinf()] = 0
         gradient_image = gradient_image.squeeze()
