@@ -83,35 +83,6 @@ class HueShift(RandomBased):
         return transforms_functional.adjust_hue(image, hue_factor)
 
 
-class remove_color(torch.nn.Module):
-    def __init__(self, receptive_field: int = 1, distance_metric: str = "absolute") -> Tensor:
-        super().__init__()
-        self.receptive_field = receptive_field
-        self.padding = torchvision.transforms.Pad(self.receptive_field, fill=torch.inf, padding_mode='constant')
-        self.distance_metric = distance_metric
-
-    def forward(self, image: Tensor) -> Tensor:
-        padded_input = self.padding(image)
-        unfold = torch.nn.Unfold(kernel_size=(image.shape[2], image.shape[3]), padding=0, stride=1)
-        inp_unf = unfold(padded_input)
-        inp_unf = inp_unf.transpose(1, 2)
-        inp_unf = inp_unf.reshape((image.shape[0], -1, 3, image.shape[2], image.shape[3]))
-        inp_unf = inp_unf.permute([0, 1, 3, 4, 2])
-        gradient_image = torch.zeros(image.shape[0], inp_unf.shape[1], inp_unf.shape[2], inp_unf.shape[3])
-        image = image.permute([0, 2, 3, 1])
-
-        for compare_shift in range(inp_unf.shape[1]):
-            if self.distance_metric == "absolute":
-                gradient_image[:, compare_shift, :, :] = torch.abs(torch.sub(image, inp_unf[:, compare_shift, :, :])).sum(dim=-1)
-            elif self.distance_metric == "euclidean":
-                gradient_image[:, compare_shift, :, :] = torch.sqrt(torch.square(torch.sub(image, inp_unf[:, compare_shift, :, :])).sum(dim=-1))
-
-        gradient_image[gradient_image.isnan()] = torch.inf
-        # gradient_image[gradient_image.isinf()] = 0
-        gradient_image = gradient_image.squeeze()
-
-        return gradient_image
-
 augmentations_dict = {
     "none": [],
     "gaussian_noise": [
@@ -141,7 +112,4 @@ augmentations_dict = {
     "grayscale": [
         transforms.Grayscale(num_output_channels=3),
     ],
-    "remove_color": [
-        remove_color(2)
-    ]
 }
