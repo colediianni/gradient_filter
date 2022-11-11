@@ -246,7 +246,7 @@ def learned_conv2d(
     # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
     for pixel in range(image.shape[2]):
         testing = torch.mul(image, image[:, :, pixel : pixel + 1, :])
-        print(testin.sum(dim=3).shape)
+        print(testing.sum(dim=3).shape)
         testing = cs(image, image[:, :, pixel : pixel + 1, :])
         print(testing.shape)
         # print("testing", testing.shape) # [128, 961, 16, 8]
