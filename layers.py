@@ -170,6 +170,7 @@ class LearnedColorInvariantConv2d(torch.nn.modules.conv._ConvNd):
             ),
             requires_grad=True,
         )  # add to initialize weights at mean pixel value
+        self.cs = torch.nn.CosineSimilarity(dim=3, eps=1e-08)
         self.mapping_model = nn.Sequential(
                     nn.Conv2d(in_channels, 10, 1, 1),
                     nn.ReLU(inplace=True),
@@ -184,12 +185,13 @@ class LearnedColorInvariantConv2d(torch.nn.modules.conv._ConvNd):
         return learned_conv2d(
             input,
             weight,
+            self.cs,
             self.mapping_model,
             self.bias,
             self.stride,
             self.padding,
             self.dilation,
-            self.groups,
+            self.groups
         )
 
     def forward(self, input):
@@ -199,6 +201,7 @@ class LearnedColorInvariantConv2d(torch.nn.modules.conv._ConvNd):
 def learned_conv2d(
     input,
     weight,
+    cs,
     mapping_model,
     bias=None,
     stride=(1, 1),
@@ -243,8 +246,11 @@ def learned_conv2d(
     # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
     for pixel in range(image.shape[2]):
         testing = torch.mul(image, image[:, :, pixel : pixel + 1, :])
+        print(testin.sum(dim=3).shape)
+        testing = cs(image, image[:, :, pixel : pixel + 1, :])
+        print(testing.shape)
         # print("testing", testing.shape) # [128, 961, 16, 8]
-        comparison_image[:, :, :, pixel] = testing.sum(dim=3)
+        comparison_image[:, :, :, pixel] = testing
 
     # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
     # print(comparison_image.min(), comparison_image.max())
