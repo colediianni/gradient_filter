@@ -95,11 +95,6 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
         weight = 1
 
       predicted_gradients = torch.abs(updated_colorized_images[:, :, neighbor_y_shift:neighbor_y_shift+h, neighbor_x_shift:neighbor_x_shift+w] - updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w]).permute([0, 2, 3, 1]).sum(dim=-1)
-      testing = (updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w])
-      print(testing)
-      print(torch.sum(testing))
-      torch.sum(testing).backward()
-      print(updated_colorized_images.grad)
 
       # print(predicted_gradients)
       # print("predicted_gradients", predicted_gradients.max())
@@ -113,7 +108,26 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     # print("diff_to_diff", diff_to_diff)
     # backpropogate
     print(diff_to_diff)
+
+
+
+    print('Tracing back tensors:')
+    def getBack(var_grad_fn):
+        print(var_grad_fn)
+        for n in var_grad_fn.next_functions:
+            if n[0]:
+                try:
+                    tensor = getattr(n[0], 'variable')
+                    print(n[0])
+                    print('Tensor with grad found:', tensor)
+                    print(' - gradient:', tensor.grad)
+                    print()
+                except AttributeError as e:
+                    getBack(n[0])
+
+
     diff_to_diff.backward()
+    getBack(diff_to_diff.grad_fn) #
     update = updated_colorized_images.grad
     print(update)
     print("here2")
