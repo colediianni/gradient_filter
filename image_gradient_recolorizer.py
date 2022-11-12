@@ -101,6 +101,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
       # print(predicted_gradients)
       # print("predicted_gradients", predicted_gradients.max())
       # print("gradient_image", gradient_image.max())
+      print(diff_to_diff.is_leaf)
       if not squared_diff:
           diff_to_diff += (1/weight) * torch.mul(torch.abs(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).sum()
       elif squared_diff:
