@@ -73,7 +73,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
 
   for p in range(300):
     updated_colorized_images = padding(colorized_images.clone().type(torch.float)).requires_grad_(requires_grad=True)#.to(device)
-    # updated_colorized_images.retain_grad()
+    updated_colorized_images.retain_grad()
     print(updated_colorized_images)
 
     # plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
@@ -95,7 +95,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
         weight = 1
 
       predicted_gradients = torch.abs(updated_colorized_images[:, :, neighbor_y_shift:neighbor_y_shift+h, neighbor_x_shift:neighbor_x_shift+w] - updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w]).permute([0, 2, 3, 1]).sum(dim=-1)
-      testing = (updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w]).requires_grad_(requires_grad=True)
+      testing = (updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w])
       print(torch.sum(testing))
       torch.sum(testing).backward()
       print(updated_colorized_images.grad)
