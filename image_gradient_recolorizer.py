@@ -72,9 +72,8 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
   padding = torchvision.transforms.Pad(receptive_field, padding_mode='reflect')
 
   for p in range(300):
-    updated_colorized_images = colorized_images.clone().type(torch.float).requires_grad_(requires_grad=True)#.to(device)
-    updated_colorized_images = padding(updated_colorized_images).requires_grad_(requires_grad=True)
-    updated_colorized_images.retain_grad()
+    updated_colorized_images = padding(colorized_images.clone().type(torch.float)).requires_grad_(requires_grad=True)#.to(device)
+    # updated_colorized_images.retain_grad()
     print(updated_colorized_images)
 
     # plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
