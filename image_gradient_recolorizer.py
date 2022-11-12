@@ -43,23 +43,24 @@ def remove_infs(image):
 
 def colorize_gradient_image(original_image, device, bias_color_location=[], weighted=True, receptive_field=2, lr=1, squared_diff=True):
 
-  original_image = original_image.unsqueeze(0)
+  print(original_image.shape)
   image_shape = original_image.shape
+  print(image_shape)
 
   gradient_image = transforms.Compose([remove_color(receptive_field, "absolute")])(original_image)
   gradient_image = (gradient_image * 255).type(torch.int)
-  gradient_image = gradient_image.clone()#.to(device)
+  gradient_image = gradient_image.clone().to(device)
 
   h, w = image_shape[2], image_shape[3]
 
   if len(bias_color_location) == 0:
-    colorized_images = (torch.rand(image_shape)*255).type(torch.int)#.to(device)
+    colorized_images = (torch.rand(image_shape)*255).type(torch.int).to(device)
   elif bias_color_location[1] == "all":
     # pass
-    colorized_images = (torch.zeros(image_shape)).type(torch.int)#.to(device)
+    colorized_images = (torch.zeros(image_shape)).type(torch.int).to(device)
     colorized_images = colorized_images.permute([0, 2, 3, 1])
     # print(torch.tensor(bias_color_location[0]).type(torch.int).to(device))
-    colorized_images += torch.tensor(bias_color_location[0]).type(torch.int)#.to(device)
+    colorized_images += torch.tensor(bias_color_location[0]).type(torch.int).to(device)
     colorized_images = colorized_images.permute([0, 3, 1, 2])
 
   # remove same-pixel comparison from gradients
@@ -71,15 +72,19 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
 
   padding = torchvision.transforms.Pad(receptive_field, padding_mode='reflect')
 
+  print("here1", colorized_images.shape)
+  print("here2", usable_gradients.shape)
+  print("here3", gradient_image.shape)
+
   for p in range(300):
-    updated_colorized_images = padding(colorized_images.clone().type(torch.float)).requires_grad_(requires_grad=True)#.to(device)
+    updated_colorized_images = colorized_images.clone().type(torch.float).requires_grad_(requires_grad=True).to(device)
+    updated_colorized_images = padding(updated_colorized_images)
     updated_colorized_images.retain_grad()
-    print(updated_colorized_images)
 
-    # plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
-    # plt.show()
+    plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
+    plt.show()
 
-    diff_to_diff = 0 #.to(device)
+    diff_to_diff = torch.tensor(0, dtype=torch.float, requires_grad=True).to(device)
     # fill in with correct gradients
     for direction in range(num_directions-1):
       if direction >= center_pixel_value:
@@ -95,52 +100,22 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
         weight = 1
 
       predicted_gradients = torch.abs(updated_colorized_images[:, :, neighbor_y_shift:neighbor_y_shift+h, neighbor_x_shift:neighbor_x_shift+w] - updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w]).permute([0, 2, 3, 1]).sum(dim=-1)
-      testing1 = updated_colorized_images[:, :, neighbor_y_shift:neighbor_y_shift+h, neighbor_x_shift:neighbor_x_shift+w]
-      print(testing1)
-      testing2 = updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w]
-      print(testing2)
-      testing3 = testing1.sum()
-      print(testing3)
-      print("here")
 
-      # print(predicted_gradients)
       # print("predicted_gradients", predicted_gradients.max())
       # print("gradient_image", gradient_image.max())
-
       if not squared_diff:
           diff_to_diff += (1/weight) * torch.mul(torch.abs(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).sum()
       elif squared_diff:
           diff_to_diff += (1/weight) * torch.mul(torch.square(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).sum()
 
-    # print("diff_to_diff", diff_to_diff)
+    print("diff_to_diff", diff_to_diff)
     # backpropogate
-    print(diff_to_diff)
-
-
-
-    print('Tracing back tensors:')
-    def getBack(var_grad_fn):
-        print(var_grad_fn)
-        for n in var_grad_fn.next_functions:
-            if n[0]:
-                try:
-                    tensor = getattr(n[0], 'variable')
-                    print(n[0])
-                    print('Tensor with grad found:', tensor)
-                    print(' - gradient:', tensor.grad)
-                    print()
-                except AttributeError as e:
-                    getBack(n[0])
-
-
     diff_to_diff.backward()
-    getBack(diff_to_diff.grad_fn) #
+
     update = updated_colorized_images.grad
-    print(update)
-    print("here2")
     # add some stochasticity (so even if all gradients are 0, backprop will still go through)
-    update += ((torch.rand(update.shape)-0.5) * 3).type(torch.int)#.to(device)
-    # print("update", update.max())
+    update += ((torch.rand(update.shape)-0.5) * 3).type(torch.int).to(device)
+    print("update", update.max())
     updated_colorized_images = updated_colorized_images - (lr * update)
     updated_colorized_images = torch.clip(updated_colorized_images.type(torch.int), 0, 255)
 
