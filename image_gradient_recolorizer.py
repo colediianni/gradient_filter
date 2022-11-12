@@ -99,7 +99,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
       print(testing1)
       testing2 = updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w]
       print(testing2)
-      testing3 = testing1 - testing2
+      testing3 = testing1.sum()
       print(testing3)
       print("here")
 
