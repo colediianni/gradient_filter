@@ -174,11 +174,11 @@ class LearnedColorInvariantConv2d(torch.nn.modules.conv._ConvNd):
         self.mapping_model = nn.Sequential(
                     nn.Conv2d(in_channels, 10, 1, 1),
                     nn.ReLU(inplace=True),
-                    nn.Conv2d(10, 25, 1, 1),
-                    nn.ReLU(inplace=True),
-                    nn.Conv2d(25, 25, 1, 1),
-                    nn.ReLU(inplace=True),
-                    nn.Conv2d(25, 10, 1, 1),
+                    # nn.Conv2d(10, 25, 1, 1),
+                    # nn.ReLU(inplace=True),
+                    # nn.Conv2d(25, 25, 1, 1),
+                    # nn.ReLU(inplace=True),
+                    nn.Conv2d(10, 10, 1, 1),
                 )
 
     def conv2d_forward(self, input, weight):
