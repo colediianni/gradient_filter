@@ -79,10 +79,10 @@ def load_data(
     )
 
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True, num_workers=0
+        train_dataset, batch_size=batch_size, shuffle=True, num_workers=2
     )
     val_loader = torch.utils.data.DataLoader(
-        valid_dataset, batch_size=batch_size, shuffle=True, num_workers=0
+        valid_dataset, batch_size=batch_size, shuffle=True, num_workers=2
     )
 
     test_set = dataset_dict[dataset](
@@ -92,7 +92,7 @@ def load_data(
         download=True,
     )
     test_loader = torch.utils.data.DataLoader(
-        test_set, batch_size=batch_size, shuffle=False, num_workers=2
+        test_set, batch_size=batch_size, shuffle=False, num_workers=0
     )
 
     return train_loader, val_loader, test_loader, dataset_channels[dataset]
