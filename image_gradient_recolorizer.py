@@ -107,8 +107,9 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     # print("diff_to_diff", diff_to_diff)
     # backpropogate
     print(diff_to_diff)
+    print("test1")
     test = torch.autograd.grad(diff_to_diff, updated_colorized_images)
-    print("test")
+    print("test2")
     print(test)
     diff_to_diff.backward()
     update = updated_colorized_images.grad
