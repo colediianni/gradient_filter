@@ -72,7 +72,6 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
   padding = torchvision.transforms.Pad(receptive_field, padding_mode='reflect')
 
   for p in range(300):
-    print(p)
     updated_colorized_images = colorized_images.clone().type(torch.float).requires_grad_(requires_grad=True)#.to(device)
     updated_colorized_images = padding(updated_colorized_images).requires_grad_(requires_grad=True)
     updated_colorized_images.retain_grad()
@@ -96,7 +95,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
         weight = 1
 
       predicted_gradients = torch.abs(updated_colorized_images[:, :, neighbor_y_shift:neighbor_y_shift+h, neighbor_x_shift:neighbor_x_shift+w] - updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w]).permute([0, 2, 3, 1]).sum(dim=-1)
-
+      print("here1")
       # print("predicted_gradients", predicted_gradients.max())
       # print("gradient_image", gradient_image.max())
       if not squared_diff:
@@ -107,7 +106,6 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     # print("diff_to_diff", diff_to_diff)
     # backpropogate
     diff_to_diff.backward()
-
     update = updated_colorized_images.grad
     print("update:", update)
     # add some stochasticity (so even if all gradients are 0, backprop will still go through)
