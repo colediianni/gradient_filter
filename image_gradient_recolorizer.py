@@ -75,13 +75,11 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     updated_colorized_images = colorized_images.clone().type(torch.float).requires_grad_(requires_grad=True)#.to(device)
     updated_colorized_images = padding(updated_colorized_images).requires_grad_(requires_grad=True)
     updated_colorized_images.retain_grad()
-    print(updated_colorized_images.device)
 
     # plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
     # plt.show()
 
-    diff_to_diff = torch.tensor(0, dtype=torch.float, requires_grad=True, device=device)#.to(device)
-    print(diff_to_diff.device)
+    diff_to_diff = torch.tensor(0, dtype=torch.float, requires_grad=True)#.to(device)
     # fill in with correct gradients
     for direction in range(num_directions-1):
       if direction >= center_pixel_value:
@@ -106,6 +104,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
 
     # print("diff_to_diff", diff_to_diff)
     # backpropogate
+    print(diff_to_diff)
     diff_to_diff.backward()
     update = updated_colorized_images.grad
     print(update)
