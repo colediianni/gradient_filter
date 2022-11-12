@@ -4,7 +4,7 @@ import torchvision
 import torchvision.transforms.functional as transforms_functional
 from torch import Tensor
 from torchvision import transforms
-
+from image_gradient_recolorizer import colorize_gradient_image
 
 class RandomBased(torch.nn.Module):
     def __init__(self, *args, seed: int = 1, **kwargs) -> None:
@@ -83,6 +83,14 @@ class HueShift(RandomBased):
         return transforms_functional.adjust_hue(image, hue_factor)
 
 
+class Recolor(RandomBased):
+    def forward(self, image: Tensor) -> Tensor:
+        bias = [[int(self.rng.uniform(0, 255)), int(self.rng.uniform(0, 255)), int(self.rng.uniform(0, 255))], "all"]
+        generated_image = colorize_gradient_image(image.shape, image, device, bias_color_location=bias, weighted=False, receptive_field=4, lr=0.0001)
+
+        return generated_image
+
+
 augmentations_dict = {
     "none": [],
     "gaussian_noise": [
@@ -112,4 +120,7 @@ augmentations_dict = {
     "grayscale": [
         transforms.Grayscale(num_output_channels=3),
     ],
+    "recolor": [
+        Recolor(),
+    ]
 }

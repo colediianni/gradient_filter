@@ -41,12 +41,23 @@ def remove_infs(image):
   return image.type(torch.int)
 
 
+def colorize_gradient_image(image_shape, original_image, device, bias_color_location=[], weighted=True, receptive_field=2, lr=1, squared_diff=True):
 
-def colorize_gradient_image(image_shape, original_image, device, bias_colors_list=[], weighted=True, receptive_field=2, lr=1, squared_diff=True):
-
-  gradient_image = transforms.Compose([remove_color(4, "absolute")])(original_image)
+  gradient_image = transforms.Compose([remove_color(receptive_field, "absolute")])(original_image)
   gradient_image = (gradient_image * 255).type(torch.int)
   gradient_image = gradient_image.clone().to(device)
+
+  h, w = image_shape[2], image_shape[3]
+
+  if len(bias_color_location) == 0:
+    colorized_images = (torch.rand(image_shape)*255).type(torch.int).to(device)
+  elif bias_color_location[1] == "all":
+    # pass
+    colorized_images = (torch.zeros(image_shape)).type(torch.int).to(device)
+    colorized_images = colorized_images.permute([0, 2, 3, 1])
+    # print(torch.tensor(bias_color_location[0]).type(torch.int).to(device))
+    colorized_images += torch.tensor(bias_color_location[0]).type(torch.int).to(device)
+    colorized_images = colorized_images.permute([0, 3, 1, 2])
 
   # remove same-pixel comparison from gradients
   num_directions = gradient_image.shape[1]
@@ -55,9 +66,6 @@ def colorize_gradient_image(image_shape, original_image, device, bias_colors_lis
   usable_gradients = torch.logical_and((gradient_image <= 255), (gradient_image >= 0))
   usable_gradients = usable_gradients*1
 
-  h, w = image_shape[2], image_shape[3]
-
-  colorized_images = (torch.rand(image_shape)*255).type(torch.int).to(device)
   padding = torchvision.transforms.Pad(receptive_field, padding_mode='reflect')
 
   for p in range(300):
@@ -65,8 +73,8 @@ def colorize_gradient_image(image_shape, original_image, device, bias_colors_lis
     updated_colorized_images = padding(updated_colorized_images)
     updated_colorized_images.retain_grad()
 
-    plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
-    plt.show()
+    # plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
+    # plt.show()
 
     diff_to_diff = torch.tensor(0, dtype=torch.float, requires_grad=True).to(device)
     # fill in with correct gradients
@@ -85,14 +93,22 @@ def colorize_gradient_image(image_shape, original_image, device, bias_colors_lis
 
       predicted_gradients = torch.abs(updated_colorized_images[:, :, neighbor_y_shift:neighbor_y_shift+h, neighbor_x_shift:neighbor_x_shift+w] - updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w]).permute([0, 2, 3, 1]).sum(dim=-1)
 
+      # print("predicted_gradients", predicted_gradients.max())
+      # print("gradient_image", gradient_image.max())
       if not squared_diff:
           diff_to_diff += (1/weight) * torch.mul(torch.abs(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).sum()
-      if squared_diff:
+      elif squared_diff:
           diff_to_diff += (1/weight) * torch.mul(torch.square(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).sum()
 
+    # print("diff_to_diff", diff_to_diff)
     # backpropogate
     diff_to_diff.backward()
-    updated_colorized_images = updated_colorized_images - (lr * updated_colorized_images.grad)
+
+    update = updated_colorized_images.grad
+    # add some stochasticity (so even if all gradients are 0, backprop will still go through)
+    update += ((torch.rand(update.shape)-0.5) * 3).type(torch.int).to(device)
+    # print("update", update.max())
+    updated_colorized_images = updated_colorized_images - (lr * update)
     updated_colorized_images = torch.clip(updated_colorized_images.type(torch.int), 0, 255)
 
     # update colorized_image to be center image of updated_colorized_images
