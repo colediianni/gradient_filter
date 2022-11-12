@@ -81,7 +81,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     # plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
     # plt.show()
 
-    diff_to_diff = torch.tensor(0, dtype=torch.float)#.to(device)
+    diff_to_diff = 0 #.to(device)
     # fill in with correct gradients
     for direction in range(num_directions-1):
       if direction >= center_pixel_value:
