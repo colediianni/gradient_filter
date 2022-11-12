@@ -43,6 +43,7 @@ def remove_infs(image):
 
 def colorize_gradient_image(original_image, device, bias_color_location=[], weighted=True, receptive_field=2, lr=1, squared_diff=True):
 
+  original_image = original_image.clone().unsqueeze(0)
   print(original_image.shape)
   image_shape = original_image.shape
   print(image_shape)
