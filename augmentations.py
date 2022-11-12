@@ -88,7 +88,7 @@ class Recolor(RandomBased):
     def forward(self, image: Tensor) -> Tensor:
         bias = [[int(self.rng.uniform(0, 255)), int(self.rng.uniform(0, 255)), int(self.rng.uniform(0, 255))], "all"]
         device = "cuda" if cuda.is_available() else "cpu"
-        generated_image = colorize_gradient_image(image.shape, image, device, bias_color_location=bias, weighted=False, receptive_field=4, lr=0.0001)
+        generated_image = colorize_gradient_image(image, device, bias_color_location=bias, weighted=False, receptive_field=4, lr=0.0001)
 
         return generated_image
 
