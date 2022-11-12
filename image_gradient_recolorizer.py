@@ -45,6 +45,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
 
   original_image = original_image.unsqueeze(0)
   image_shape = original_image.shape
+  print(image_shape)
 
   gradient_image = transforms.Compose([remove_color(receptive_field, "absolute")])(original_image)
   gradient_image = (gradient_image * 255).type(torch.int)
