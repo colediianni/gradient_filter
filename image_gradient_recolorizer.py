@@ -49,7 +49,6 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
   gradient_image = transforms.Compose([remove_color(receptive_field, "absolute")])(original_image)
   gradient_image = (gradient_image * 255).type(torch.int)
   gradient_image = gradient_image.clone()#.to(device)
-  print("here1", gradient_image.shape)
 
   h, w = image_shape[2], image_shape[3]
 
@@ -67,15 +66,10 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
   num_directions = gradient_image.shape[1]
   center_pixel_value = int(num_directions/2)
   gradient_image = torch.cat([gradient_image[:, :center_pixel_value], gradient_image[:, center_pixel_value+1:]], dim=1)
-  print("here2", gradient_image.shape)
   usable_gradients = torch.logical_and((gradient_image <= 255), (gradient_image >= 0))
   usable_gradients = usable_gradients*1
 
   padding = torchvision.transforms.Pad(receptive_field, padding_mode='reflect')
-
-  # print("here1", colorized_images.shape)
-  # print("here2", usable_gradients.shape)
-  print("here3", gradient_image.shape)
 
   for p in range(300):
     updated_colorized_images = colorized_images.clone().type(torch.float).requires_grad_(requires_grad=True)#.to(device)
@@ -104,9 +98,6 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
 
       # print("predicted_gradients", predicted_gradients.max())
       # print("gradient_image", gradient_image.max())
-      print(predicted_gradients.shape)
-      print(gradient_image.shape)
-      print(usable_gradients.shape)
       if not squared_diff:
           diff_to_diff += (1/weight) * torch.mul(torch.abs(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).sum()
       elif squared_diff:
@@ -117,6 +108,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     diff_to_diff.backward()
 
     update = updated_colorized_images.grad
+    print("update:", update)
     # add some stochasticity (so even if all gradients are 0, backprop will still go through)
     update += ((torch.rand(update.shape)-0.5) * 3).type(torch.int)#.to(device)
     # print("update", update.max())
