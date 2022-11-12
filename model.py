@@ -281,11 +281,12 @@ def classification_testing_pipeline(
     total_preds_correct = 0
     for augmentation in [
         "none",
+        "recolor",
         "gaussian_noise",
         "gaussian_blur",
         "color_jitter",
         "salt_and_pepper",
-        "per_pixel_channel_permutation",
+        # "per_pixel_channel_permutation",
         "channel_permutation",
         "invert",
         "hue_shift",
