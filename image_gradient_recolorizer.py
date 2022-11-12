@@ -43,6 +43,11 @@ def remove_infs(image):
 
 def colorize_gradient_image(image_shape, original_image, device, bias_color_location=[], weighted=True, receptive_field=2, lr=1, squared_diff=True):
 
+  print(original_image.shape)
+  original_image = original_image.unsqueeze(0)
+  print(original_image.shape)
+  image_shape = original_image.shape
+
   gradient_image = transforms.Compose([remove_color(receptive_field, "absolute")])(original_image)
   gradient_image = (gradient_image * 255).type(torch.int)
   gradient_image = gradient_image.clone().to(device)
