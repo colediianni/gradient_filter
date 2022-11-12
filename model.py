@@ -315,9 +315,9 @@ def classification_testing_pipeline(
                 )
 
         logging.info("total correct: %s", preds_correct)
-        logging.info("accuracy: %s", preds_correct / len(test_loader))
+        logging.info("accuracy: %s", preds_correct / len(test_loader.dataset))
 
         total_preds_correct += preds_correct
-        total_preds += len(test_loader)
+        total_preds += len(test_loader.dataset)
 
     logging.info("overall accuracy: %s", total_preds_correct / total_preds)
