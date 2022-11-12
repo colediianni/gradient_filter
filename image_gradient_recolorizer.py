@@ -95,7 +95,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
         weight = 1
 
       predicted_gradients = torch.abs(updated_colorized_images[:, :, neighbor_y_shift:neighbor_y_shift+h, neighbor_x_shift:neighbor_x_shift+w] - updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w]).permute([0, 2, 3, 1]).sum(dim=-1)
-      print(torch.sub(updated_colorized_images[:, :, neighbor_y_shift:neighbor_y_shift+h, neighbor_x_shift:neighbor_x_shift+w], updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w]))
+      print(updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w])
       # print(predicted_gradients)
       # print("predicted_gradients", predicted_gradients.max())
       # print("gradient_image", gradient_image.max())
