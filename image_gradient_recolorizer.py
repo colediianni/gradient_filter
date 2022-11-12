@@ -76,12 +76,12 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     updated_colorized_images = padding(updated_colorized_images).requires_grad_(requires_grad=True)
     updated_colorized_images.retain_grad()
     print(updated_colorized_images)
+    updated_colorized_images.register_hook(print)
 
     # plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
     # plt.show()
 
-    diff_to_diff = torch.tensor(0, dtype=torch.float).requires_grad_(requires_grad=True)#.to(device)
-    diff_to_diff.retain_grad()
+    diff_to_diff = torch.tensor(0, dtype=torch.float)#.to(device)
     # fill in with correct gradients
     for direction in range(num_directions-1):
       if direction >= center_pixel_value:
@@ -96,9 +96,8 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
       else:
         weight = 1
 
-      predicted_gradients = torch.abs(updated_colorized_images[:, :, neighbor_y_shift:neighbor_y_shift+h, neighbor_x_shift:neighbor_x_shift+w] - updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w]).permute([0, 2, 3, 1]).sum(dim=-1).requires_grad_(requires_grad=True)
-      predicted_gradients.retain_grad()
-      print(predicted_gradients)
+      predicted_gradients = torch.abs(updated_colorized_images[:, :, neighbor_y_shift:neighbor_y_shift+h, neighbor_x_shift:neighbor_x_shift+w] - updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w]).permute([0, 2, 3, 1]).sum(dim=-1)
+      # print(predicted_gradients)
       # print("predicted_gradients", predicted_gradients.max())
       # print("gradient_image", gradient_image.max())
       if not squared_diff:
