@@ -123,4 +123,4 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
   plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
   plt.show()
 
-  return colorized_images
+  return colorized_images.type(torch.float).to(device)
