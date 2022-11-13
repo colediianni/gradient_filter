@@ -3,6 +3,7 @@ import torch
 import torchvision
 from torch import Tensor
 from torchvision import transforms
+import matplotlib.pyplot as plt
 
 class remove_color(torch.nn.Module):
     def __init__(self, receptive_field: int = 1, distance_metric: str = "absolute") -> Tensor:
