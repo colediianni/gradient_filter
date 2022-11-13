@@ -45,9 +45,8 @@ def remove_infs(image):
 def colorize_gradient_image(original_image, device, bias_color_location=[], weighted=True, receptive_field=2, lr=1, squared_diff=True):
 
   original_image = original_image.clone()
-  print(original_image.shape)
   image_shape = original_image.shape
-  print(image_shape)
+  # print(image_shape)
 
   gradient_image = transforms.Compose([remove_color(receptive_field, "absolute")])(original_image)
   gradient_image = (gradient_image * 255).type(torch.int)
@@ -74,17 +73,13 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
 
   padding = torchvision.transforms.Pad(receptive_field, padding_mode='reflect')
 
-  print("here1", colorized_images.shape)
-  print("here2", usable_gradients.shape)
-  print("here3", gradient_image.shape)
-
   for p in range(300):
     updated_colorized_images = colorized_images.clone().type(torch.float).requires_grad_(requires_grad=True).to(device)
     updated_colorized_images = padding(updated_colorized_images)
     updated_colorized_images.retain_grad()
 
-    plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
-    plt.show()
+    # plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
+    # plt.show()
 
     diff_to_diff = torch.tensor(0, dtype=torch.float, requires_grad=True).to(device)
     # fill in with correct gradients
@@ -110,14 +105,14 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
       elif squared_diff:
           diff_to_diff += (1/weight) * torch.mul(torch.square(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).sum()
 
-    print("diff_to_diff", diff_to_diff)
+    # print("diff_to_diff", diff_to_diff)
     # backpropogate
     diff_to_diff.backward()
 
     update = updated_colorized_images.grad
     # add some stochasticity (so even if all gradients are 0, backprop will still go through)
     update += ((torch.rand(update.shape)-0.5) * 3).type(torch.int).to(device)
-    print("update", update.max())
+    # print("update", update.max())
     updated_colorized_images = updated_colorized_images - (lr * update)
     updated_colorized_images = torch.clip(updated_colorized_images.type(torch.int), 0, 255)
 
