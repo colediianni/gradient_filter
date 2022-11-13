@@ -304,7 +304,7 @@ def classification_testing_pipeline(
             colorspace=colorspace,
             batch_size=64,
             train_prop=0.8,
-            test_augmentation=augmentation,
+            test_augmentation=aug,
         )
 
         preds_correct = 0
