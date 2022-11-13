@@ -48,7 +48,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
   image_shape = original_image.shape
   # print(image_shape)
 
-  gradient_image = transforms.Compose([remove_color(receptive_field, "absolute")])(original_image)
+  gradient_image = transforms.Compose([remove_color(receptive_field, "euclidean")])(original_image)
   gradient_image = (gradient_image * 255).type(torch.int)
   gradient_image = gradient_image.clone().to(device)
 
