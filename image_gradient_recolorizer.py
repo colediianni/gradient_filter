@@ -29,7 +29,7 @@ class remove_color(torch.nn.Module):
 
         gradient_image[gradient_image.isnan()] = torch.inf
         # gradient_image[gradient_image.isinf()] = 0
-        gradient_image = gradient_image.squeeze()
+        # gradient_image = gradient_image.squeeze()
 
         return gradient_image
 
@@ -43,7 +43,7 @@ def remove_infs(image):
 
 def colorize_gradient_image(original_image, device, bias_color_location=[], weighted=True, receptive_field=2, lr=1, squared_diff=True):
 
-  original_image = original_image.clone().unsqueeze(0)
+  original_image = original_image.clone()
   print(original_image.shape)
   image_shape = original_image.shape
   print(image_shape)
