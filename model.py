@@ -14,6 +14,7 @@ from augmentations import augmentations_dict
 from data import load_data, dataset_channels
 from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d
 from utils import setup_logger
+from augmentations import Recolor
 
 
 def get_classification_model(
@@ -295,6 +296,9 @@ def classification_testing_pipeline(
         logging.info("with augmentation: %s", augmentation)
 
         # load dataset
+        aug = augmentation
+        if aug == "recolor":
+            aug = "none"
         _train_loader, _val_loader, test_loader, _input_channels = load_data(
             dataset=dataset_name,
             colorspace=colorspace,
@@ -304,16 +308,20 @@ def classification_testing_pipeline(
         )
 
         preds_correct = 0
-        with torch.no_grad():
-            for batch in test_loader:
-                images, labels = batch
-                images = images.to(device)
-                labels = labels.to(device)
+        for batch in test_loader:
+            images, labels = batch
+            images = images.to(device)
+            if augmentation == "recolor":
+                print(images.shape)
+                images = Recolor(images)
+                print(images.shape)
 
-                test_preds = network(images)
-                preds_correct += (
-                    test_preds.argmax(dim=1).eq(labels).sum().item()
-                )
+            labels = labels.to(device)
+
+            test_preds = network(images)
+            preds_correct += (
+                test_preds.argmax(dim=1).eq(labels).sum().item()
+            )
 
         logging.info("total correct: %s", preds_correct)
         logging.info("accuracy: %s", preds_correct / len(test_loader.dataset))

@@ -122,7 +122,4 @@ augmentations_dict = {
     "grayscale": [
         transforms.Grayscale(num_output_channels=3),
     ],
-    "recolor": [
-        Recolor(),
-    ]
 }
