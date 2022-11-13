@@ -312,9 +312,7 @@ def classification_testing_pipeline(
             images, labels = batch
             images = images.to(device)
             if augmentation == "recolor":
-                print(images.shape)
                 images = Recolor()(images)
-                print(images.shape)
 
             labels = labels.to(device)
 
