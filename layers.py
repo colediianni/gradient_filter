@@ -175,11 +175,11 @@ class LearnedColorInvariantConv2d(torch.nn.modules.conv._ConvNd):
         self.mapping_model = nn.Sequential(
                     nn.Conv2d(in_channels, 10, 1, 1),
                     nn.ReLU(inplace=True),
-                    nn.Conv2d(10, 25, 1, 1),
+                    nn.Conv2d(10, 10, 1, 1),
                     nn.ReLU(inplace=True),
-                    nn.Conv2d(25, 25, 1, 1),
+                    nn.Conv2d(10, 10, 1, 1),
                     nn.ReLU(inplace=True),
-                    nn.Conv2d(25, 10, 1, 1),
+                    nn.Conv2d(10, 5, 1, 1),
                 )
 
     def conv2d_forward(self, input, weight):
@@ -253,9 +253,9 @@ def learned_conv2d(
     start = time.time()
     # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
     for pixel in range(image.shape[2]):
-        testing = torch.mul(image, image[:, :, pixel : pixel + 1, :]).sum(dim=3)
+        # testing = torch.mul(image, image[:, :, pixel : pixel + 1, :]).sum(dim=3)
         # print(testing.sum(dim=3).shape)
-        # testing = cs(image, image[:, :, pixel : pixel + 1, :])
+        testing = cs(image, image[:, :, pixel : pixel + 1, :])
         # print(testing.shape)
         # print("testing", testing.shape) # [128, 961, 16, 8]
         comparison_image[:, :, :, pixel] = testing
