@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.nn.modules.utils import _pair
+import time
 
 
 class EuclideanColorInvariantConv2d(torch.nn.modules.conv._ConvNd):
@@ -210,7 +211,10 @@ def learned_conv2d(
     groups=1,
 ):
     # print(input.shape)
+    start = time.time()
     input = mapping_model(input)
+    end = time.time()
+    print("mapping_model", end - start)
     # print(input.shape)
     batch_size, in_channels, in_h, in_w = input.shape
     out_channels, kern_in_channels, kh, kw = weight.shape
@@ -243,6 +247,7 @@ def learned_conv2d(
     # colors = torch.matmul(rearranged, normalized_colors)
     # print("colors", colors.shape) # [128, 961, 16, 4]
 
+    start = time.time()
     # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
     for pixel in range(image.shape[2]):
         # testing = torch.mul(image, image[:, :, pixel : pixel + 1, :])
@@ -252,6 +257,8 @@ def learned_conv2d(
         # print("testing", testing.shape) # [128, 961, 16, 8]
         comparison_image[:, :, :, pixel] = testing
 
+    end = time.time()
+    print("for loop", end - start)
     # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
     # print(comparison_image.min(), comparison_image.max())
 
