@@ -215,7 +215,10 @@ def learned_conv2d(
     input = mapping_model(input)
     end = time.time()
     print("mapping_model", end - start)
-    # print(input.shape)
+    print(input.shape)
+    print(weight.shape)
+
+
     batch_size, in_channels, in_h, in_w = input.shape
     out_channels, kern_in_channels, kh, kw = weight.shape
     out_h = int((in_h - kh + 2 * padding[0]) / stride[0] + 1)
