@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 from typing import Union
+import time
 
 import matplotlib.pyplot as plt
 import torch
@@ -15,6 +16,7 @@ from data import load_data, dataset_channels
 from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d
 from utils import setup_logger
 from augmentations import Recolor
+
 
 
 def get_classification_model(
@@ -102,8 +104,11 @@ def train_classification_model(
             loss = F.cross_entropy(preds, labels)  # Calculate Loss
 
             optimizer.zero_grad()
+            start = time.time()
             loss.backward()  # Calculate gradients
             optimizer.step()  # Update weights
+            end = time.time()
+            print("backward", end - start)
 
             total_loss += loss.item() / len(train_loader)
             total_correct += preds.argmax(dim=1).eq(labels).sum().item()
