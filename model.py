@@ -104,11 +104,11 @@ def train_classification_model(
             loss = F.cross_entropy(preds, labels)  # Calculate Loss
 
             optimizer.zero_grad()
-            start = time.time()
+            # start = time.time()
             loss.backward()  # Calculate gradients
             optimizer.step()  # Update weights
-            end = time.time()
-            print("backward", end - start)
+            # end = time.time()
+            # print("backward", end - start)
 
             total_loss += loss.item() / len(train_loader)
             total_correct += preds.argmax(dim=1).eq(labels).sum().item()

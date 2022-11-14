@@ -176,8 +176,8 @@ class LearnedColorInvariantConv2d(torch.nn.modules.conv._ConvNd):
                     nn.Conv2d(in_channels, 10, 1, 1),
                     nn.ReLU(inplace=True),
                     nn.Conv2d(10, 10, 1, 1),
-                    nn.ReLU(inplace=True),
-                    nn.Conv2d(10, 10, 1, 1),
+                    # nn.ReLU(inplace=True),
+                    # nn.Conv2d(10, 10, 1, 1),
                     nn.ReLU(inplace=True),
                     nn.Conv2d(10, 5, 1, 1),
                 )
@@ -211,10 +211,10 @@ def learned_conv2d(
     groups=1,
 ):
     # print(input.shape)
-    start = time.time()
+    # start = time.time()
     input = mapping_model(input)
-    end = time.time()
-    print("mapping_model", end - start)
+    # end = time.time()
+    # print("mapping_model", end - start)
     # print(input.shape) # torch.Size([128, 10, 32, 32])
     # print(weight.shape) # torch.Size([64, 49, 7, 7])
 
@@ -250,7 +250,7 @@ def learned_conv2d(
     # colors = torch.matmul(rearranged, normalized_colors)
     # print("colors", colors.shape) # [128, 961, 16, 4]
 
-    start = time.time()
+    # start = time.time()
     # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
     for pixel in range(image.shape[2]):
         # testing = torch.mul(image, image[:, :, pixel : pixel + 1, :]).sum(dim=3)
@@ -260,8 +260,8 @@ def learned_conv2d(
         # print("testing", testing.shape) # [128, 961, 16, 8]
         comparison_image[:, :, :, pixel] = testing
 
-    end = time.time()
-    print("for loop", end - start)
+    # end = time.time()
+    # print("for loop", end - start)
     # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
     # print(comparison_image.min(), comparison_image.max())
 
