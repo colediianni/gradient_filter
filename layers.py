@@ -215,8 +215,8 @@ def learned_conv2d(
     input = mapping_model(input)
     end = time.time()
     print("mapping_model", end - start)
-    print(input.shape)
-    print(weight.shape)
+    # print(input.shape) # torch.Size([128, 10, 32, 32])
+    # print(weight.shape) # torch.Size([64, 49, 7, 7])
 
 
     batch_size, in_channels, in_h, in_w = input.shape
@@ -253,9 +253,9 @@ def learned_conv2d(
     start = time.time()
     # print("comparison_image", comparison_image.shape) # [128, 961, 16, 16]
     for pixel in range(image.shape[2]):
-        # testing = torch.mul(image, image[:, :, pixel : pixel + 1, :])
+        testing = torch.mul(image, image[:, :, pixel : pixel + 1, :]).sum(dim=3)
         # print(testing.sum(dim=3).shape)
-        testing = cs(image, image[:, :, pixel : pixel + 1, :])
+        # testing = cs(image, image[:, :, pixel : pixel + 1, :])
         # print(testing.shape)
         # print("testing", testing.shape) # [128, 961, 16, 8]
         comparison_image[:, :, :, pixel] = testing
