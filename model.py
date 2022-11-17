@@ -296,7 +296,7 @@ def classification_testing_pipeline(
         "invert",
         "hue_shift",
         "grayscale",
-        "recolor"
+        # "recolor"
     ]:
         logging.info("with augmentation: %s", augmentation)
 
