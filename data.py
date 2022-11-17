@@ -49,38 +49,21 @@ def load_data(
     batch_size=64,
     train_prop=0.8,
     test_augmentation="none",
-    grayscale=False
 ):
     colorspace_transforms = colorspaces[colorspace]
     test_augmentations = augmentations_dict[test_augmentation]
 
-    if grayscale:
-        colorspace_train_transforms = [
-            transforms.RandomCrop(32, padding=4),
-            transforms.RandomHorizontalFlip(),
-        ] + augmentations_dict["grayscale"] + colorspace_transforms
-    else:
-        colorspace_train_transforms = [
-            transforms.RandomCrop(32, padding=4),
-            transforms.RandomHorizontalFlip(),
-        ] + colorspace_transforms
+    colorspace_train_transforms = [
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+    ] + colorspace_transforms
 
-
-    if grayscale:
-        test_transforms = (
-            [transforms.ToTensor()]
-            + test_augmentations
-            + [transforms.ToPILImage()]
-            + augmentations_dict["grayscale"]
-            + colorspace_transforms
-        )
-    else:
-        test_transforms = (
-            [transforms.ToTensor()]
-            + test_augmentations
-            + [transforms.ToPILImage()]
-            + colorspace_transforms
-        )
+    test_transforms = (
+        [transforms.ToTensor()]
+        + test_augmentations
+        + [transforms.ToPILImage()]
+        + colorspace_transforms
+    )
 
     train_set = dataset_dict[dataset](
         root="./data",

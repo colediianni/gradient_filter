@@ -26,7 +26,7 @@ def get_classification_model(
     load_from_path: Path = None,
 ):
     logging.info("==> Building model..")
-    if "normal_resnet" in model_type:
+    if model_type == "normal_resnet":
         network = torchvision.models.resnet50()
         network.conv1 = torch.nn.Conv2d(
             input_channels,
@@ -36,7 +36,7 @@ def get_classification_model(
             padding=(3, 3),
             bias=False,
         )
-    elif "euclidean_diff_ci_resnet" in model_type:
+    elif model_type == "euclidean_diff_ci_resnet":
         network = torchvision.models.resnet50()
         network.conv1 = EuclideanColorInvariantConv2d(
             input_channels,
@@ -46,7 +46,7 @@ def get_classification_model(
             padding=(3, 3),
             bias=False,
         )
-    elif "learned_diff_ci_resnet" in model_type:
+    elif model_type == "learned_diff_ci_resnet":
         network = torchvision.models.resnet50()
         network.conv1 = LearnedColorInvariantConv2d(
             input_channels,
@@ -77,7 +77,7 @@ def train_classification_model(
     model_save_path: Path,
     loss_plot_path: Path,
     epochs=100,
-    lr=0.001
+    lr=0.001,
 ):
     optimizer = optim.SGD(
         network.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4
@@ -179,7 +179,6 @@ def classification_training_pipeline(
     epochs=100,
     lr=0.001,
     model_load_path: Path = None,
-    grayscale=False
 ):
     if not isinstance(base_path, Path):
         base_path = Path(base_path)
@@ -206,7 +205,6 @@ def classification_training_pipeline(
         colorspace=colorspace,
         batch_size=batch_size,
         train_prop=0.8,
-        grayscale=grayscale
     )
 
     # load model
@@ -231,7 +229,7 @@ def classification_training_pipeline(
         model_save_path,
         loss_plot_path,
         epochs=epochs,
-        lr=lr
+        lr=lr,
     )
 
 
@@ -298,7 +296,7 @@ def classification_testing_pipeline(
         "invert",
         "hue_shift",
         "grayscale",
-        # "recolor"
+        "recolor"
     ]:
         logging.info("with augmentation: %s", augmentation)
 
