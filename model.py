@@ -286,7 +286,6 @@ def classification_testing_pipeline(
     total_preds = 0
     total_preds_correct = 0
     for augmentation in [
-        "recolor",
         "none",
         "gaussian_noise",
         "gaussian_blur",
@@ -297,6 +296,7 @@ def classification_testing_pipeline(
         "invert",
         "hue_shift",
         "grayscale",
+        "recolor"
     ]:
         logging.info("with augmentation: %s", augmentation)
 
