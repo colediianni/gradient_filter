@@ -26,7 +26,7 @@ def get_classification_model(
     load_from_path: Path = None,
 ):
     logging.info("==> Building model..")
-    if model_type == "normal_resnet":
+    if "normal_resnet" in model_type:
         network = torchvision.models.resnet50()
         network.conv1 = torch.nn.Conv2d(
             input_channels,
@@ -36,7 +36,7 @@ def get_classification_model(
             padding=(3, 3),
             bias=False,
         )
-    elif model_type == "euclidean_diff_ci_resnet":
+    elif "euclidean_diff_ci_resnet" in model_type:
         network = torchvision.models.resnet50()
         network.conv1 = EuclideanColorInvariantConv2d(
             input_channels,
@@ -46,7 +46,7 @@ def get_classification_model(
             padding=(3, 3),
             bias=False,
         )
-    elif model_type == "learned_diff_ci_resnet":
+    elif "learned_diff_ci_resnet" in model_type:
         network = torchvision.models.resnet50()
         network.conv1 = LearnedColorInvariantConv2d(
             input_channels,
