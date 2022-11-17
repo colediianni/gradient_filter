@@ -120,7 +120,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     new_image = updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w].type(torch.int)
     colorized_images = new_image
 
-  plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
-  plt.show()
+  # plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
+  # plt.show()
 
   return colorized_images.type(torch.float).to(device)
