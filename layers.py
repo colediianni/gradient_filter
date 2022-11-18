@@ -35,11 +35,11 @@ def grayscale_conv2d(input, weight, grayscale_func, bias=None, stride=(1,1), pad
     """
     Function to process an input with a standard convolution
     """
-    print(input.shape)
+    
     # convert to 3d grayscale
+    # print(input.shape)
     input = grayscale_func(input)
-    print(input.shape)
-
+    # print(input.shape)
 
     batch_size, in_channels, in_h, in_w = input.shape
     out_channels, in_channels, kh, kw = weight.shape
