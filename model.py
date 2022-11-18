@@ -13,7 +13,7 @@ import torchvision
 
 from augmentations import augmentations_dict
 from data import load_data, dataset_channels
-from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d
+from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d, GrayscaleConv2d
 from utils import setup_logger
 from augmentations import Recolor
 
