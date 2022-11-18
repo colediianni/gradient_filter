@@ -13,7 +13,7 @@ import torchvision
 
 from augmentations import augmentations_dict
 from data import load_data, dataset_channels
-from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d, GrayscaleConv2d
+from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d, GrayscaleConv2d, GrayscaleEuclideanColorInvariantConv2d
 from utils import setup_logger
 from augmentations import Recolor
 
@@ -59,6 +59,16 @@ def get_classification_model(
     elif model_type == "grayscale_normal_resnet":
         network = torchvision.models.resnet50()
         network.conv1 = GrayscaleConv2d(
+            input_channels,
+            64,
+            kernel_size=(7, 7),
+            stride=(2, 2),
+            padding=(3, 3),
+            bias=False,
+        )
+    elif model_type == "grayscale_euclidean_diff_ci_resnet":
+        network = torchvision.models.resnet50()
+        network.conv1 = GrayscaleEuclideanColorInvariantConv2d(
             input_channels,
             64,
             kernel_size=(7, 7),
