@@ -22,22 +22,22 @@ class GrayscaleConv2d(torch.nn.modules.conv._ConvNd):
             False, _pair(0), groups, bias, padding_mode)
         self.grayscale = transforms.Compose([augmentations_dict["grayscale"]])(original_image)
 
-    def grayscale_conv2d_forward(self, input, weight):
-        return grayscale_conv2d(input, weight, self.bias, self.stride,
+    def grayscale_conv2d_forward(self, input, weight, grayscale_func):
+        return grayscale_conv2d(input, weight, grayscale_func, self.bias, self.stride,
                         self.padding, self.dilation, self.groups)
 
     def forward(self, input):
-        return self.grayscale_conv2d_forward(input, self.weight)
+        return self.grayscale_conv2d_forward(input, self.weight, self.grayscale)
 
 
 # Clean Convolution
-def grayscale_conv2d(input, weight, bias=None, stride=(1,1), padding=(0,0), dilation=(1,1), groups=1):
+def grayscale_conv2d(input, weight, grayscale_func, bias=None, stride=(1,1), padding=(0,0), dilation=(1,1), groups=1):
     """
     Function to process an input with a standard convolution
     """
     print(input.shape)
     # convert to 3d grayscale
-    input =
+    input = grayscale_func(input)
     print(input.shape)
 
 
