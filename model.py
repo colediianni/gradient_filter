@@ -56,6 +56,16 @@ def get_classification_model(
             padding=(3, 3),
             bias=False,
         )
+    elif model_type == "grayscale_normal_resnet":
+        network = torchvision.models.resnet50()
+        network.conv1 = GrayscaleConv2d(
+            input_channels,
+            64,
+            kernel_size=(7, 7),
+            stride=(2, 2),
+            padding=(3, 3),
+            bias=False,
+        )
 
     network = torch.nn.DataParallel(network)
     network = network.to(device)

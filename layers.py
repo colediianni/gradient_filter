@@ -2,6 +2,59 @@ import torch
 import torch.nn as nn
 from torch.nn.modules.utils import _pair
 import time
+from torchvision import transforms
+from augmentations import augmentations_dict
+
+# Define Base Layer
+class GrayscaleConv2d(torch.nn.modules.conv._ConvNd):
+    """
+    Implements a standard convolution layer that can be used as a regular module
+    """
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1,
+                 padding=0, dilation=1, groups=1,
+                 bias=True, padding_mode='zeros'):
+        kernel_size = _pair(kernel_size)
+        stride = _pair(stride)
+        padding = _pair(padding)
+        dilation = _pair(dilation)
+        super(GrayscaleConv2d, self).__init__(
+            in_channels, out_channels, kernel_size, stride, padding, dilation,
+            False, _pair(0), groups, bias, padding_mode)
+        self.grayscale = transforms.Compose([augmentations_dict["grayscale"]])(original_image)
+
+    def grayscale_conv2d_forward(self, input, weight):
+        return grayscale_conv2d(input, weight, self.bias, self.stride,
+                        self.padding, self.dilation, self.groups)
+
+    def forward(self, input):
+        return self.grayscale_conv2d_forward(input, self.weight)
+
+
+# Clean Convolution
+def grayscale_conv2d(input, weight, bias=None, stride=(1,1), padding=(0,0), dilation=(1,1), groups=1):
+    """
+    Function to process an input with a standard convolution
+    """
+    print(input.shape)
+    # convert to 3d grayscale
+    input =
+    print(input.shape)
+
+
+    batch_size, in_channels, in_h, in_w = input.shape
+    out_channels, in_channels, kh, kw = weight.shape
+    out_h = int((in_h - kh + 2 * padding[0]) / stride[0] + 1)
+    out_w = int((in_w - kw + 2 * padding[1]) / stride[1] + 1)
+    unfold = torch.nn.Unfold(kernel_size=(kh, kw), dilation=dilation, padding=padding, stride=stride)
+    inp_unf = unfold(input)
+    w_ = weight.view(weight.size(0), -1).t()
+
+    if bias is None:
+        out_unf = inp_unf.transpose(1, 2).matmul(w_).transpose(1, 2)
+    else:
+        out_unf = (inp_unf.transpose(1, 2).matmul(w_) + bias).transpose(1, 2)
+    out = out_unf.view(batch_size, out_channels, out_h, out_w)
+    return out.float()
 
 
 class EuclideanColorInvariantConv2d(torch.nn.modules.conv._ConvNd):
