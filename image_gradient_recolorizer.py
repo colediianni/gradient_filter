@@ -5,11 +5,13 @@ from torch import Tensor
 from torchvision import transforms
 import matplotlib.pyplot as plt
 
-class remove_color(torch.nn.Module):
-    def __init__(self, receptive_field: int = 1, distance_metric: str = "absolute") -> Tensor:
+
+class GanDecolorizer(torch.nn.Module):
+    def __init__(self, receptive_field: int = 1, distance_metric: str = "absolute"):
         super().__init__()
         self.receptive_field = receptive_field
-        self.padding = torchvision.transforms.Pad(self.receptive_field, fill=torch.inf, padding_mode='constant')
+        self.padding_val = torch.inf
+        self.padding = torchvision.transforms.Pad(self.receptive_field, fill=self.padding_val, padding_mode='constant')
         self.distance_metric = distance_metric
 
     def forward(self, image: Tensor) -> Tensor:
@@ -28,7 +30,39 @@ class remove_color(torch.nn.Module):
             elif self.distance_metric == "euclidean":
                 gradient_image[:, compare_shift, :, :] = torch.sqrt(torch.square(torch.sub(image, inp_unf[:, compare_shift, :, :])).sum(dim=-1))
 
-        gradient_image[gradient_image.isnan()] = torch.inf
+        gradient_image[gradient_image.isnan()] = 0
+        gradient_image[gradient_image.isinf()] = 0
+        gradient_image[gradient_image.abs() >= 10000] = 0
+
+        return gradient_image
+
+
+
+class remove_color(torch.nn.Module):
+    def __init__(self, receptive_field: int = 1, distance_metric: str = "absolute", padding_val: float = torch.inf):
+        super().__init__()
+        self.receptive_field = receptive_field
+        self.padding_val = padding_val
+        self.padding = torchvision.transforms.Pad(self.receptive_field, fill=padding_val, padding_mode='constant')
+        self.distance_metric = distance_metric
+
+    def forward(self, image: Tensor) -> Tensor:
+        padded_input = self.padding(image)
+        unfold = torch.nn.Unfold(kernel_size=(image.shape[2], image.shape[3]), padding=0, stride=1)
+        inp_unf = unfold(padded_input)
+        inp_unf = inp_unf.transpose(1, 2)
+        inp_unf = inp_unf.reshape((image.shape[0], -1, 3, image.shape[2], image.shape[3]))
+        inp_unf = inp_unf.permute([0, 1, 3, 4, 2])
+        gradient_image = torch.zeros(image.shape[0], inp_unf.shape[1], inp_unf.shape[2], inp_unf.shape[3])
+        image = image.permute([0, 2, 3, 1])
+
+        for compare_shift in range(inp_unf.shape[1]):
+            if self.distance_metric == "absolute":
+                gradient_image[:, compare_shift, :, :] = torch.abs(torch.sub(image, inp_unf[:, compare_shift, :, :])).sum(dim=-1)
+            elif self.distance_metric == "euclidean":
+                gradient_image[:, compare_shift, :, :] = torch.sqrt(torch.square(torch.sub(image, inp_unf[:, compare_shift, :, :])).sum(dim=-1))
+
+        gradient_image[gradient_image.isnan()] = self.padding_val
         # gradient_image[gradient_image.isinf()] = 0
         # gradient_image = gradient_image.squeeze()
 
@@ -42,13 +76,17 @@ def remove_infs(image):
   return image.type(torch.int)
 
 
-def colorize_gradient_image(original_image, device, bias_color_location=[], weighted=True, receptive_field=2, lr=1, squared_diff=True):
+def colorize_gradient_image(original_image, device, bias_color_location=[], weighted=True, receptive_field=2, lr=1, squared_diff=True, image_is_rgb=True):
 
   original_image = original_image.clone()
   image_shape = original_image.shape
   # print(image_shape)
 
-  gradient_image = transforms.Compose([remove_color(receptive_field, "euclidean")])(original_image)
+  if image_is_rgb:
+    gradient_image = transforms.Compose([remove_color(receptive_field, "euclidean")])(original_image)
+  else:
+    gradient_image = original_image
+
   gradient_image = (gradient_image * 255).type(torch.int)
   gradient_image = gradient_image.clone().to(device)
 
@@ -101,9 +139,9 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
       # print("predicted_gradients", predicted_gradients.max())
       # print("gradient_image", gradient_image.max())
       if not squared_diff:
-          diff_to_diff += (1/weight) * torch.mul(torch.abs(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).sum()
+          diff_to_diff = diff_to_diff + (1/weight) * torch.mul(torch.abs(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).sum()
       elif squared_diff:
-          diff_to_diff += (1/weight) * torch.mul(torch.square(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).sum()
+          diff_to_diff = diff_to_diff + (1/weight) * torch.mul(torch.square(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).sum()
 
     # print("diff_to_diff", diff_to_diff)
     # backpropogate
