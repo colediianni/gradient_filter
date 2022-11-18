@@ -80,6 +80,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
 
   original_image = original_image.clone()
   image_shape = original_image.shape
+  image_shape = (image_shape[0], 3, image_shape[2], image_shape[3])
   # print(image_shape)
 
   if image_is_rgb:
