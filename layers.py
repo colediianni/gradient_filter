@@ -37,7 +37,7 @@ def grayscale_conv2d(input, weight, grayscale_func, bias=None, stride=(1,1), pad
     """
     print(input.shape)
     # convert to 3d grayscale
-    input = grayscale_func(input)
+    input = transforms.Compose([augmentations_dict["grayscale"]])(input)
     print(input.shape)
 
 
