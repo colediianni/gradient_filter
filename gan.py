@@ -15,31 +15,40 @@ import torch.utils.data
 import torchvision.utils as vutils
 
 from data import load_data, load_data_gan
-from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d, SquaredEuclideanColorInvariantConv2d, AbsColorInvariantConv2d
+from layers import (
+    EuclideanColorInvariantConv2d,
+    LearnedColorInvariantConv2d,
+    SquaredEuclideanColorInvariantConv2d,
+    AbsColorInvariantConv2d,
+)
 from test_cases import test
+
 cudnn.benchmark = True
 
-def train_normal_ci_gan(base_path: Path,
+
+def train_normal_ci_gan(
+    base_path: Path,
     model_type,
     dataset_name,
     colorspace,
     device,
-    D_criterion = nn.BCELoss(),
-    C_criterion = nn.BCELoss(),
-    G_criterion = nn.BCELoss(),
+    D_criterion=nn.BCELoss(),
+    C_criterion=nn.BCELoss(),
+    G_criterion=nn.BCELoss(),
     regularization_lambda=1,
     epochs=25,
     batch_size=128,
     g_lr=0.0003,
     d_lr=0.0001,
-    c_lr=0.0001):
+    c_lr=0.0001,
+):
 
     # custom weights initialization called on netG and netD
     def weights_init(m):
         classname = m.__class__.__name__
-        if classname.find('Conv') != -1:
+        if classname.find("Conv") != -1:
             m.weight.data.normal_(0.0, 0.02)
-        elif classname.find('BatchNorm') != -1:
+        elif classname.find("BatchNorm") != -1:
             m.weight.data.normal_(1.0, 0.02)
             m.bias.data.fill_(0)
 
@@ -56,15 +65,21 @@ def train_normal_ci_gan(base_path: Path,
                 nn.BatchNorm2d(self.ngf * 8),
                 nn.ReLU(True),
                 # state size. (self.ngf*8) x 4 x 4
-                nn.ConvTranspose2d(self.ngf * 8, self.ngf * 4, 4, 2, 1, bias=False),
+                nn.ConvTranspose2d(
+                    self.ngf * 8, self.ngf * 4, 4, 2, 1, bias=False
+                ),
                 nn.BatchNorm2d(self.ngf * 4),
                 nn.ReLU(True),
                 # state size. (self.ngf*4) x 8 x 8
-                nn.ConvTranspose2d(self.ngf * 4, self.ngf * 2, 4, 2, 1, bias=False),
+                nn.ConvTranspose2d(
+                    self.ngf * 4, self.ngf * 2, 4, 2, 1, bias=False
+                ),
                 nn.BatchNorm2d(self.ngf * 2),
                 nn.ReLU(True),
                 # state size. (self.ngf*2) x 16 x 16
-                nn.ConvTranspose2d(self.ngf * 2, self.ngf, 4, 2, 1, bias=False),
+                nn.ConvTranspose2d(
+                    self.ngf * 2, self.ngf, 4, 2, 1, bias=False
+                ),
                 nn.BatchNorm2d(self.ngf),
                 nn.ReLU(True),
                 # state size. (self.ngf) x 32 x 32
@@ -75,7 +90,9 @@ def train_normal_ci_gan(base_path: Path,
 
         def forward(self, input):
             if input.is_cuda and self.ngpu > 1:
-                output = nn.parallel.data_parallel(self.main, input, range(self.ngpu))
+                output = nn.parallel.data_parallel(
+                    self.main, input, range(self.ngpu)
+                )
             else:
                 output = self.main(input)
                 return output
@@ -102,12 +119,14 @@ def train_normal_ci_gan(base_path: Path,
                 nn.LeakyReLU(0.2, inplace=True),
                 # state size. (ndf*8) x 4 x 4
                 nn.Conv2d(ndf * 8, 1, 4, 1, 0, bias=False),
-                nn.Sigmoid()
+                nn.Sigmoid(),
             )
 
         def forward(self, input):
             if input.is_cuda and self.ngpu > 1:
-                output = nn.parallel.data_parallel(self.main, input, range(self.ngpu))
+                output = nn.parallel.data_parallel(
+                    self.main, input, range(self.ngpu)
+                )
             else:
                 output = self.main(input)
 
@@ -123,7 +142,7 @@ def train_normal_ci_gan(base_path: Path,
                 nn.Linear(1000, 1000),
                 nn.LeakyReLU(0.2, inplace=True),
                 nn.Linear(1000, 2),
-                nn.Sigmoid()
+                nn.Sigmoid(),
             )
 
         def forward(self, input):
@@ -131,7 +150,9 @@ def train_normal_ci_gan(base_path: Path,
             input = torch.sort(input)
             print("input", input)
             if input.is_cuda and self.ngpu > 1:
-                output = nn.parallel.data_parallel(self.main, input, range(self.ngpu))
+                output = nn.parallel.data_parallel(
+                    self.main, input, range(self.ngpu)
+                )
             else:
                 output = self.main(input)
 
@@ -144,7 +165,15 @@ def train_normal_ci_gan(base_path: Path,
     output_file = (
         base_path
         / "logs"
-        / ("gan_" + model_type + "_" + dataset_name + "_" + colorspace + ".txt")
+        / (
+            "gan_"
+            + model_type
+            + "_"
+            + dataset_name
+            + "_"
+            + colorspace
+            + ".txt"
+        )
     )
     logger = logging.root
     file_handler = logging.FileHandler(output_file, mode="w")
@@ -168,23 +197,25 @@ def train_normal_ci_gan(base_path: Path,
     sample_dims = sample[0].shape
     total_pixels_per_batch = sample_dims[0] * sample_dims[2] * sample_dims[3]
 
-    #checking the availability of cuda devices
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # checking the availability of cuda devices
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    nc=3
+    nc = 3
     # number of gpu's available
     ngpu = 1
     # input noise dimension
     nz = 100
     # number of generator filters
     ngf = 64
-    #number of discriminator filters
+    # number of discriminator filters
     ndf = 64
 
     netG = Generator(ngpu=ngpu, nz=nz, ngf=ngf, nc=nc).to(device)
     netG.apply(weights_init)
 
-    netC = Color_Discriminator(num_pixels=total_pixels_per_batch, nc=nc).to(device)
+    netC = Color_Discriminator(num_pixels=total_pixels_per_batch, nc=nc).to(
+        device
+    )
     # netC.apply(weights_init)
 
     netD = Discriminator(ngpu, ndf, nc).to(device)
@@ -211,7 +242,9 @@ def train_normal_ci_gan(base_path: Path,
             netD.zero_grad()
             real_cpu = data[0].to(device)
             batch_size = real_cpu.size(0)
-            label = torch.full((batch_size,), real_label, device=device).float()
+            label = torch.full(
+                (batch_size,), real_label, device=device
+            ).float()
 
             output = netD(real_cpu)
             errD_real = D_criterion(output, label)
@@ -238,8 +271,12 @@ def train_normal_ci_gan(base_path: Path,
             ###########################
             # train with real
             netC.zero_grad()
-            target_colors = (torch.round(torch.rand(fake.shape)*255)/255).to(device)
-            label = torch.full((batch_size,), real_label, device=device).float()
+            target_colors = (
+                torch.round(torch.rand(fake.shape) * 255) / 255
+            ).to(device)
+            label = torch.full(
+                (batch_size,), real_label, device=device
+            ).float()
             errC_real = C_criterion(target_colors, label)
             errC_real.backward()
             C_x = output.mean().item()
@@ -268,39 +305,85 @@ def train_normal_ci_gan(base_path: Path,
             D_G_z2 = output.mean().item()
             optimizerG.step()
 
-            #save the output
+            # save the output
             if i % 100 == 0:
-                print('[%d/%d][%d/%d] Loss_D: %.4f Loss_C: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f' % (epoch, epochs, i, len(dataloader), errD.item(), errC.item(), errG.item(), D_x, D_G_z1, D_G_z2))
-                logging.info('[%d/%d][%d/%d] Loss_D: %.4f Loss_C: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f' % (epoch, epochs, i, len(dataloader), errD.item(), errC.item(), errG.item(), D_x, D_G_z1, D_G_z2))
-                normal_image_path = (
-                    base_path
-                    / "images"
-                    / (f"{dataset_name}.png")
+                print(
+                    "[%d/%d][%d/%d] Loss_D: %.4f Loss_C: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f"
+                    % (
+                        epoch,
+                        epochs,
+                        i,
+                        len(dataloader),
+                        errD.item(),
+                        errC.item(),
+                        errG.item(),
+                        D_x,
+                        D_G_z1,
+                        D_G_z2,
+                    )
                 )
-                print('saving the output')
-                logging.info('saving the output')
-                vutils.save_image(real_cpu,normal_image_path,normalize=False)
+                logging.info(
+                    "[%d/%d][%d/%d] Loss_D: %.4f Loss_C: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f"
+                    % (
+                        epoch,
+                        epochs,
+                        i,
+                        len(dataloader),
+                        errD.item(),
+                        errC.item(),
+                        errG.item(),
+                        D_x,
+                        D_G_z1,
+                        D_G_z2,
+                    )
+                )
+                normal_image_path = (
+                    base_path / "images" / (f"{dataset_name}.png")
+                )
+                print("saving the output")
+                logging.info("saving the output")
+                vutils.save_image(real_cpu, normal_image_path, normalize=False)
                 # fake = torch.clip(netG(fixed_noise), 0, 1)
                 fake = netG(fixed_noise)
                 fake = torch.clip((fake - fake.min()), 0, 1)
                 generated_image_path = (
                     base_path
                     / "images"
-                    / (f"gan_{model_type}_{dataset_name}_{colorspace}_{epoch}.png")
+                    / (
+                        f"gan_{model_type}_{dataset_name}_{colorspace}_{epoch}.png"
+                    )
                 )
-                vutils.save_image(fake.detach(),generated_image_path,normalize=False)
+                vutils.save_image(
+                    fake.detach(), generated_image_path, normalize=False
+                )
 
         # save latest
         if epoch % 5 == 0:
             g_model_save_path = (
                 base_path
                 / "models"
-                / ("gan_" + model_type + "_" + dataset_name + "_" + colorspace + f"_g_{epoch}.pth")
+                / (
+                    "gan_"
+                    + model_type
+                    + "_"
+                    + dataset_name
+                    + "_"
+                    + colorspace
+                    + f"_g_{epoch}.pth"
+                )
             )
             d_model_save_path = (
                 base_path
                 / "models"
-                / ("gan_" + model_type + "_" + dataset_name + "_" + colorspace + f"_d_{epoch}.pth")
+                / (
+                    "gan_"
+                    + model_type
+                    + "_"
+                    + dataset_name
+                    + "_"
+                    + colorspace
+                    + f"_d_{epoch}.pth"
+                )
             )
             # Check pointing for every epoch
             torch.save(netG.state_dict(), g_model_save_path)
@@ -309,12 +392,28 @@ def train_normal_ci_gan(base_path: Path,
         g_model_save_path = (
             base_path
             / "models"
-            / ("gan_" + model_type + "_" + dataset_name + "_" + colorspace + f"_g_latest.pth")
+            / (
+                "gan_"
+                + model_type
+                + "_"
+                + dataset_name
+                + "_"
+                + colorspace
+                + f"_g_latest.pth"
+            )
         )
         d_model_save_path = (
             base_path
             / "models"
-            / ("gan_" + model_type + "_" + dataset_name + "_" + colorspace + f"_d_latest.pth")
+            / (
+                "gan_"
+                + model_type
+                + "_"
+                + dataset_name
+                + "_"
+                + colorspace
+                + f"_d_latest.pth"
+            )
         )
         # Check pointing for every epoch
         torch.save(netG.state_dict(), g_model_save_path)
