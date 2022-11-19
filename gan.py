@@ -225,7 +225,7 @@ def train_gan(
             netD.zero_grad()
             images = images.to(device)
             decolorized_images = decolorizer(images)
-            print("decolorized_images", decolorized_images.max())
+            # print("decolorized_images", decolorized_images.max())
             batch_size = decolorized_images.size(0)
             label = torch.full(
                 (batch_size,), real_label, device=device
@@ -243,7 +243,7 @@ def train_gan(
             # fake = torch.clip(netG(noise), 0, 1)
 
             fake = netG(noise)
-            print("fake", fake.max())
+            # print("fake", fake.max())
             label.fill_(fake_label)
             output = netD(fake.detach())
             errD_fake = D_criterion(output, label)
