@@ -215,7 +215,7 @@ def train_gan(
 
     g_loss = []
     d_loss = []
-    mask = torch.ones([batch_size, nc, 64, 64]) # NOTE: h, w hardcoded
+    mask = torch.ones([batch_size, nc, 64, 64], device=device) # NOTE: h, w hardcoded
 
     for epoch in range(epochs):
         for i, (images, _) in enumerate(dataloader, 0):
