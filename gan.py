@@ -225,6 +225,7 @@ def train_gan(
             netD.zero_grad()
             images = images.to(device)
             decolorized_images = decolorizer(images)
+            print(decolorized_images.shape)
             # print("decolorized_images", decolorized_images.max())
             batch_size = decolorized_images.size(0)
             label = torch.full(
@@ -306,6 +307,27 @@ def train_gan(
                 )
                 save_sample_image(
                     generated_images,
+                    base_path,
+                    model_type,
+                    dataset_name,
+                    colorspace,
+                    epoch,
+                )
+
+                save_real_image = (
+                    decolorized_images
+                    .detach()
+                    .requires_grad_(requires_grad=False)
+                )
+                real_images = colorize_gradient_image(
+                    save_real_image,
+                    device,
+                    receptive_field=receptive_field,
+                    lr=recolorizer_lr,
+                    image_is_rgb=False,
+                )
+                save_sample_image(
+                    real_images,
                     base_path,
                     model_type,
                     dataset_name,
