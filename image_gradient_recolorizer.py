@@ -150,7 +150,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
 
     update = updated_colorized_images.grad
     # add some stochasticity (so even if all gradients are 0, backprop will still go through)
-    update += ((torch.rand(update.shape)-0.5) * 3).type(torch.int).to(device)
+    update += torch.round((torch.rand(update.shape)-0.5) * 2).type(torch.int).to(device)
     # print("update", update.max())
     updated_colorized_images = updated_colorized_images - (lr * update)
     updated_colorized_images = torch.clip(updated_colorized_images.type(torch.int), 0, 255)
