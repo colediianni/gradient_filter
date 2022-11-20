@@ -300,7 +300,7 @@ def train_gan(
                     .detach()
                     .requires_grad_(requires_grad=False)
                 )
-                print("save_image", save_image.max(), save_image.min())
+                # print("save_image", save_image.max(), save_image.min())
                 generated_images = colorize_gradient_image(
                     save_image,
                     device,
@@ -310,7 +310,7 @@ def train_gan(
                     lr=recolorizer_lr,
                     image_is_rgb=False,
                 )
-                print("generated_images", generated_images.max(), generated_images.min())
+                # print("generated_images", generated_images.max(), generated_images.min())
                 save_sample_image(
                     generated_images,
                     base_path,
@@ -325,7 +325,7 @@ def train_gan(
                     .detach()
                     .requires_grad_(requires_grad=False)
                 )
-                print("save_real_image", save_real_image.max(), save_real_image.min())
+                # print("save_real_image", save_real_image.max(), save_real_image.min())
                 real_images = colorize_gradient_image(
                     save_real_image,
                     device,
@@ -335,7 +335,7 @@ def train_gan(
                     lr=recolorizer_lr,
                     image_is_rgb=False,
                 )
-                print("real_images", real_images.max(), real_images.min())
+                # print("real_images", real_images.max(), real_images.min())
                 save_sample_image(
                     real_images,
                     base_path,
