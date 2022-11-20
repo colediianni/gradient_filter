@@ -117,8 +117,8 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     updated_colorized_images = padding(updated_colorized_images)
     updated_colorized_images.retain_grad()
 
-    # plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
-    # plt.show()
+    plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
+    plt.show()
 
     diff_to_diff = torch.tensor(0, dtype=torch.float, requires_grad=True).to(device)
     # fill in with correct gradients
