@@ -215,6 +215,7 @@ def train_gan(
 
     g_loss = []
     d_loss = []
+    mask = torch.ones([batch_size, nc, 64, 64]) # NOTE: h, w hardcoded
 
     for epoch in range(epochs):
         for i, (images, _) in enumerate(dataloader, 0):
@@ -225,9 +226,9 @@ def train_gan(
             netD.zero_grad()
             images = images.to(device)
             decolorized_images = decolorizer(images)
-            print(decolorized_images.shape)
+            # print(decolorized_images.shape) # torch.Size([128, 25, 64, 64])
             # print("decolorized_images", decolorized_images.max())
-            batch_size = decolorized_images.size(0)
+            # batch_size = decolorized_images.size(0)
             label = torch.full(
                 (batch_size,), real_label, device=device
             ).float()
@@ -244,6 +245,7 @@ def train_gan(
             # fake = torch.clip(netG(noise), 0, 1)
 
             fake = netG(noise)
+            fake = fake * mask
             # print("fake", fake.max())
             label.fill_(fake_label)
             output = netD(fake.detach())
@@ -329,10 +331,10 @@ def train_gan(
                 save_sample_image(
                     real_images,
                     base_path,
-                    model_type,
+                    "real",
                     dataset_name,
                     colorspace,
-                    epoch,
+                    "real"
                 )
 
         # save latest
