@@ -268,7 +268,7 @@ def train_gan(
             optimizerG.step()
 
             # save the output
-            if i % 100 == 0:
+            if i % 300 == 0:
                 print(
                     "[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f"
                     % (
@@ -300,6 +300,7 @@ def train_gan(
                     .detach()
                     .requires_grad_(requires_grad=False)
                 )
+                print("save_image", save_image.max(), save_image.min())
                 generated_images = colorize_gradient_image(
                     save_image,
                     device,
@@ -309,6 +310,7 @@ def train_gan(
                     lr=recolorizer_lr,
                     image_is_rgb=False,
                 )
+                print("generated_images", generated_images.max(), generated_images.min())
                 save_sample_image(
                     generated_images,
                     base_path,
@@ -323,6 +325,7 @@ def train_gan(
                     .detach()
                     .requires_grad_(requires_grad=False)
                 )
+                print("save_real_image", save_real_image.max(), save_real_image.min())
                 real_images = colorize_gradient_image(
                     save_real_image,
                     device,
@@ -332,6 +335,7 @@ def train_gan(
                     lr=recolorizer_lr,
                     image_is_rgb=False,
                 )
+                print("real_images", real_images.max(), real_images.min())
                 save_sample_image(
                     real_images,
                     base_path,
