@@ -303,6 +303,7 @@ def train_gan(
                 generated_images = colorize_gradient_image(
                     save_image,
                     device,
+                    weighted=False,
                     receptive_field=receptive_field,
                     lr=recolorizer_lr,
                     image_is_rgb=False,
@@ -324,6 +325,7 @@ def train_gan(
                 real_images = colorize_gradient_image(
                     save_real_image,
                     device,
+                    weighted=False,
                     receptive_field=receptive_field,
                     lr=recolorizer_lr,
                     image_is_rgb=False,
