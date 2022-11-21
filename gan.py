@@ -8,6 +8,7 @@ import torch.nn.parallel
 import torch.optim as optim
 import torch.utils.data
 import torchvision.utils as vutils
+import numpy as np
 
 from data import load_data_gan
 from image_gradient_recolorizer import GanDecolorizer, colorize_gradient_image
