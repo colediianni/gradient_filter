@@ -259,7 +259,7 @@ def train_gan(
 
             fake = netG(noise)
             fake = fake * mask
-            print((fake*(1-mask)).sum())
+            # print((fake*(1-mask)).sum())
             # print("fake", fake.max())
             label.fill_(fake_label)
             output = netD(fake.detach())
