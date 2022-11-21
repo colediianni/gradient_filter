@@ -117,8 +117,8 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     updated_colorized_images = padding(updated_colorized_images)
     updated_colorized_images.retain_grad()
 
-    # plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
-    # plt.show()
+    plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
+    plt.show()
 
     diff_to_diff = torch.tensor(0, dtype=torch.float, requires_grad=True).to(device)
     # fill in with correct gradients
@@ -149,18 +149,25 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     diff_to_diff.backward()
 
     update = updated_colorized_images.grad
+    # print(update.min(), update.max(), update.type(torch.float).mean())
     # add some stochasticity (so even if all gradients are 0, backprop will still go through)
-    update += torch.round((torch.rand(update.shape)-0.5) * 2).type(torch.int).to(device)
+    stochasticity = torch.round((torch.rand(update.shape)-0.5) * 2).type(torch.int).to(device)
+    # print(stochasticity.min(), stochasticity.max(), stochasticity.type(torch.float).mean())
+    update += stochasticity
     # print("update", update.max())
-    updated_colorized_images = updated_colorized_images - (lr * update)
-    updated_colorized_images = torch.clip(updated_colorized_images.type(torch.int), 0, 255)
+    # print("update", torch.abs(update).min(), torch.abs(update).max(), torch.abs(update).type(torch.float).mean())
+    dynamic_lr = lr/torch.abs(update).type(torch.float).mean()
+
+    # print("(dynamic_lr * update)", (dynamic_lr * update).min(), (dynamic_lr * update).max(), (dynamic_lr * update).type(torch.float).mean())
+    updated_colorized_images = updated_colorized_images - (dynamic_lr * update)
+    updated_colorized_images = torch.clip(torch.round(updated_colorized_images).type(torch.int), 0, 255)
 
     # update colorized_image to be center image of updated_colorized_images
     new_image = updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w].type(torch.int)
     colorized_images = new_image
 
-  # plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
-  # plt.show()
+  plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
+  plt.show()
 
   colorized_images = colorized_images.type(torch.float).to(device)
   return colorized_images / 255
