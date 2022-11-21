@@ -215,7 +215,19 @@ def train_gan(
 
     g_loss = []
     d_loss = []
-    mask = torch.ones([batch_size, nc, 64, 64], device=device) # NOTE: h, w hardcoded
+    h, w = 64, 64 # NOTE: h, w hardcoded
+    mask = torch.ones([batch_size, nc, h, w], device=device)
+    for y_val in range(h):
+        for x_val in range(w):
+            for direction in range(nc):
+                neighbor_x_shift = direction % int(np.sqrt(nc))
+                neighbor_y_shift = int(direction / int(np.sqrt(nc)))
+
+                if y_val + neighbor_y_shift < 0 or y_val + neighbor_y_shift >= h:
+                    mask[:, direction, y_val, x_val] = 0
+                if x_val + neighbor_x_shift < 0 or x_val + neighbor_x_shift >= w:
+                    mask[:, direction, y_val, x_val] = 0
+
 
     for epoch in range(epochs):
         for i, (images, _) in enumerate(dataloader, 0):
@@ -246,6 +258,7 @@ def train_gan(
 
             fake = netG(noise)
             fake = fake * mask
+            print((fake*(1-mask)).sum())
             # print("fake", fake.max())
             label.fill_(fake_label)
             output = netD(fake.detach())
