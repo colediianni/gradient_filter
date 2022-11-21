@@ -159,11 +159,12 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     dynamic_lr = lr/torch.abs(update).type(torch.float).mean()
 
     # print("(dynamic_lr * update)", (dynamic_lr * update).min(), (dynamic_lr * update).max(), (dynamic_lr * update).type(torch.float).mean())
-    updated_colorized_images = updated_colorized_images - (dynamic_lr * update)
-    updated_colorized_images = torch.clip(torch.round(updated_colorized_images).type(torch.int), 0, 255)
+    updated_colorized_images = updated_colorized_images - (lr * update)
+    updated_colorized_images = torch.clip(updated_colorized_images, 0, 255)
+    # updated_colorized_images = torch.clip(torch.round(updated_colorized_images).type(torch.int), 0, 255)
 
     # update colorized_image to be center image of updated_colorized_images
-    new_image = updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w].type(torch.int)
+    new_image = updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w]
     colorized_images = new_image
 
   plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
