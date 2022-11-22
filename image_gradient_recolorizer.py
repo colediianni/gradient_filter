@@ -166,7 +166,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
 
     # update colorized_image to be center image of updated_colorized_images
     new_image = updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w]
-    colorized_images = new_image
+    colorized_images = new_image.clone()
 
   if verbose:
       plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
