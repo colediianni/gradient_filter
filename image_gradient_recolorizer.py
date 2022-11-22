@@ -76,7 +76,7 @@ def remove_infs(image):
   return image.type(torch.int)
 
 
-def colorize_gradient_image(original_image, device, bias_color_location=[], weighted=True, receptive_field=2, lr=1, squared_diff=True, image_is_rgb=True):
+def colorize_gradient_image(original_image, device, bias_color_location=[], weighted=True, receptive_field=2, lr=1, squared_diff=True, image_is_rgb=True, verbose=False):
 
   original_image = original_image.clone()
   image_shape = original_image.shape
@@ -117,8 +117,9 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     updated_colorized_images = padding(updated_colorized_images)
     updated_colorized_images.retain_grad()
 
-    plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
-    plt.show()
+    if verbose:
+        plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
+        plt.show()
 
     diff_to_diff = torch.tensor(0, dtype=torch.float, requires_grad=True).to(device)
     # fill in with correct gradients
@@ -167,8 +168,9 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     new_image = updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w]
     colorized_images = new_image
 
-  plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
-  plt.show()
+  if verbose:
+      plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
+      plt.show()
 
   colorized_images = colorized_images.type(torch.float).to(device)
   return colorized_images / 255
