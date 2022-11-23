@@ -56,7 +56,9 @@ def load_data(
     if dataset == "mnist":
         colorspace_train_transforms = [
             transforms.RandomCrop(32, padding=4),
+            transforms.ToTensor(),
             ExpandColorDimension(),
+            transforms.ToPILImage(),
         ] + colorspace_transforms
     elif dataset == "cifar":
         colorspace_train_transforms = [
