@@ -10,7 +10,7 @@ dataset_dict = {
     "mnist": datasets.MNIST,
     "cifar": datasets.CIFAR10,
 }
-dataset_channels = {"mnist": 1, "cifar": 3}
+dataset_channels = {"mnist": 3, "cifar": 3}
 
 dataset_root = Path.cwd() / "data"
 
