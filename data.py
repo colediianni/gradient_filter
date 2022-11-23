@@ -58,7 +58,7 @@ def load_data(
             transforms.RandomCrop(32, padding=4),
             ExpandColorDimension(),
         ] + colorspace_transforms
-    elif dataset == "cifar"
+    elif dataset == "cifar":
         colorspace_train_transforms = [
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
