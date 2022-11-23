@@ -68,7 +68,7 @@ def load_data(
 
     if dataset == "mnist":
         test_transforms = (
-            [transforms.ToTensor(), ExpandColorDimension(),]
+            [transforms.ToTensor(), ExpandColorDimension()]
             + test_augmentations
             + [transforms.ToPILImage()]
             + colorspace_transforms
