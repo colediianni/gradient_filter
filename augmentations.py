@@ -83,6 +83,11 @@ class HueShift(RandomBased):
         hue_factor = self.rng.uniform(-0.5, 0.5)
         return transforms_functional.adjust_hue(image, hue_factor)
 
+class ExpandColorDimension(RandomBased):
+    def forward(self, image: Tensor) -> Tensor:
+        print("image", image.shape)
+        return image.repeat(1, 3, 1, 1)
+
 
 class Recolor(RandomBased):
     def forward(self, image: Tensor) -> Tensor:

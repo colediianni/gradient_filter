@@ -3,7 +3,7 @@ from pathlib import Path
 import torch
 from torchvision import datasets, transforms
 
-from augmentations import augmentations_dict
+from augmentations import augmentations_dict, ExpandColorDimension
 from color_space import colorspaces
 
 dataset_dict = {
@@ -53,10 +53,16 @@ def load_data(
     colorspace_transforms = colorspaces[colorspace]
     test_augmentations = augmentations_dict[test_augmentation]
 
-    colorspace_train_transforms = [
-        transforms.RandomCrop(32, padding=4),
-        transforms.RandomHorizontalFlip(),
-    ] + colorspace_transforms
+    if dataset == "mnist":
+        colorspace_train_transforms = [
+            transforms.RandomCrop(32, padding=4),
+            ExpandColorDimension(),
+        ] + colorspace_transforms
+    elif dataset == "cifar"
+        colorspace_train_transforms = [
+            transforms.RandomCrop(32, padding=4),
+            transforms.RandomHorizontalFlip(),
+        ] + colorspace_transforms
 
     test_transforms = (
         [transforms.ToTensor()]
@@ -95,4 +101,4 @@ def load_data(
         test_set, batch_size=batch_size, shuffle=False, num_workers=0
     )
 
-    return train_loader, val_loader, test_loader, dataset_channels[dataset]
+    return train_loader, val_loader, test_loader, 3
