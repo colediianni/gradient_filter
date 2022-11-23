@@ -66,12 +66,20 @@ def load_data(
             transforms.RandomHorizontalFlip(),
         ] + colorspace_transforms
 
-    test_transforms = (
-        [transforms.ToTensor()]
-        + test_augmentations
-        + [transforms.ToPILImage()]
-        + colorspace_transforms
-    )
+    if dataset == "mnist":
+        test_transforms = (
+            [transforms.ToTensor(), ExpandColorDimension(),]
+            + test_augmentations
+            + [transforms.ToPILImage()]
+            + colorspace_transforms
+        )
+    elif dataset == "cifar":
+        test_transforms = (
+            [transforms.ToTensor()]
+            + test_augmentations
+            + [transforms.ToPILImage()]
+            + colorspace_transforms
+        )
 
     train_set = dataset_dict[dataset](
         root="./data",
@@ -81,7 +89,9 @@ def load_data(
     )
 
     train_size = int(train_prop * len(train_set))
+    print(train_size)
     valid_size = len(train_set) - train_size
+    print(valid_size)
     train_dataset, valid_dataset = torch.utils.data.random_split(
         train_set, [train_size, valid_size]
     )
