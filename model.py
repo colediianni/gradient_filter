@@ -118,7 +118,6 @@ def train_classification_model(
         network.train()
         for batch in train_loader:  # Get batch
             images, labels = batch  # Unpack the batch into images and labels
-            print(images.shape)
             images, labels = images.to(device), labels.to(device)
 
             preds = network(images)  # Pass batch

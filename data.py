@@ -89,9 +89,7 @@ def load_data(
     )
 
     train_size = int(train_prop * len(train_set))
-    print(train_size)
     valid_size = len(train_set) - train_size
-    print(valid_size)
     train_dataset, valid_dataset = torch.utils.data.random_split(
         train_set, [train_size, valid_size]
     )
