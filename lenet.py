@@ -10,6 +10,8 @@ from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d, G
 class LeNet(nn.Module):
     def __init__(self, model_type, num_classes=10):
         super().__init__()
+
+        self.mapping_model = None
         if model_type == "normal_lenet":
             self.layer1 = nn.Sequential(
                 nn.Conv2d(3, 6, kernel_size=5, stride=1, padding=0),
@@ -22,6 +24,17 @@ class LeNet(nn.Module):
                 nn.BatchNorm2d(6),
                 nn.ReLU(),
                 nn.MaxPool2d(kernel_size = 2, stride = 2))
+        elif model_type == "learned_diff_ci_lenet":
+            self.mapping_model = nn.Sequential(
+                        nn.Conv2d(3, 10, 1, 1),
+                        nn.ReLU(inplace=True),
+                        nn.Conv2d(10, 10, 1, 1),
+                        # nn.ReLU(inplace=True),
+                        # nn.Conv2d(10, 10, 1, 1),
+                        nn.ReLU(inplace=True),
+                        nn.Conv2d(10, 5, 1, 1),
+                    )
+
         self.layer2 = nn.Sequential(
             nn.Conv2d(6, 16, kernel_size=5, stride=1, padding=0),
             nn.BatchNorm2d(16),
@@ -34,12 +47,21 @@ class LeNet(nn.Module):
         self.fc2 = nn.Linear(84, num_classes)
 
     def forward(self, x):
+        print(x.shape)
         out = self.layer1(x)
+        print(out.shape)
         out = self.layer2(out)
+        print(out.shape)
         out = out.reshape(out.size(0), -1)
+        print(out.shape)
         out = self.fc(out)
+        print(out.shape)
         out = self.relu(out)
+        print(out.shape)
         out = self.fc1(out)
+        print(out.shape)
         out = self.relu1(out)
+        print(out.shape)
         out = self.fc2(out)
+        print(out.shape)
         return out
