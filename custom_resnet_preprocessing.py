@@ -5,7 +5,7 @@ from torch import nn, Tensor
 
 from torchvision.transforms import functional as F, InterpolationMode
 
-class MyImageClassification(nn.Module):
+class NoNormalizationImageClassification(nn.Module):
     def __init__(
         self,
         *,
