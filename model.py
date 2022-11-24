@@ -16,6 +16,7 @@ from data import load_data, dataset_channels
 from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d, GrayscaleConv2d, GrayscaleEuclideanColorInvariantConv2d
 from utils import setup_logger
 from augmentations import Recolor
+from lenet import LeNet
 
 
 
@@ -76,6 +77,9 @@ def get_classification_model(
             padding=(3, 3),
             bias=False,
         )
+    elif model_type == "normal_lenet":
+        network = LeNet(model_type)
+
 
     network = torch.nn.DataParallel(network)
     network = network.to(device)
