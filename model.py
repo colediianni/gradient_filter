@@ -77,7 +77,7 @@ def get_classification_model(
             padding=(3, 3),
             bias=False,
         )
-    elif model_type == "normal_lenet":
+    elif model_type == "normal_lenet" or model_type == "euclidean_diff_ci_lenet":
         network = LeNet(model_type)
 
 
