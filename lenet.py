@@ -12,7 +12,7 @@ class LeNet(nn.Module):
         super(ConvNeuralNet, self).__init__()
         if model_type == "normal_lenet":
             self.layer1 = nn.Sequential(
-                nn.Conv2d(1, 6, kernel_size=5, stride=1, padding=0),
+                nn.Conv2d(3, 6, kernel_size=5, stride=1, padding=0),
                 nn.BatchNorm2d(6),
                 nn.ReLU(),
                 nn.MaxPool2d(kernel_size = 2, stride = 2))
