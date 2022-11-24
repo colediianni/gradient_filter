@@ -9,7 +9,7 @@ from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d, G
 #Defining the convolutional neural network
 class LeNet(nn.Module):
     def __init__(self, model_type, num_classes=10):
-        super(ConvNeuralNet, self).__init__()
+        super().__init__()
         if model_type == "normal_lenet":
             self.layer1 = nn.Sequential(
                 nn.Conv2d(3, 6, kernel_size=5, stride=1, padding=0),
