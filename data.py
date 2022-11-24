@@ -68,7 +68,7 @@ def load_data(
 
     if dataset == "mnist":
         test_transforms = (
-            [torchvision.transforms.Pad(2, fill=0), transforms.ToTensor(), ExpandColorDimension()]
+            [transforms.Pad(2, fill=0), transforms.ToTensor(), ExpandColorDimension()]
             + test_augmentations
             + [transforms.ToPILImage()]
             + colorspace_transforms
