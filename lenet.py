@@ -47,21 +47,12 @@ class LeNet(nn.Module):
         self.fc2 = nn.Linear(84, num_classes)
 
     def forward(self, x):
-        print(x.shape)
         out = self.layer1(x)
-        print(out.shape)
         out = self.layer2(out)
-        print(out.shape)
         out = out.reshape(out.size(0), -1)
-        print(out.shape)
         out = self.fc(out)
-        print(out.shape)
         out = self.relu(out)
-        print(out.shape)
         out = self.fc1(out)
-        print(out.shape)
         out = self.relu1(out)
-        print(out.shape)
         out = self.fc2(out)
-        print(out.shape)
         return out
