@@ -18,7 +18,7 @@ class LeNet(nn.Module):
                 nn.MaxPool2d(kernel_size = 2, stride = 2))
         elif model_type == "euclidean_diff_ci_lenet":
             self.layer1 = nn.Sequential(
-                nn.EuclideanColorInvariantConv2d(3, 6, kernel_size=5, stride=1, padding=0),
+                EuclideanColorInvariantConv2d(3, 6, kernel_size=5, stride=1, padding=0),
                 nn.BatchNorm2d(6),
                 nn.ReLU(),
                 nn.MaxPool2d(kernel_size = 2, stride = 2))
