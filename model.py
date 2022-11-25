@@ -17,8 +17,7 @@ from layers import EuclideanColorInvariantConv2d, LearnedColorInvariantConv2d, G
 from utils import setup_logger
 from augmentations import Recolor
 from lenet import LeNet
-from custom_resnet_preprocessing import NoNormalizationImageClassification
-from torchvision.models import ResNet50_Weights
+from resnet import ResNet
 
 
 def get_classification_model(
@@ -28,71 +27,8 @@ def get_classification_model(
     load_from_path: Path = None,
 ):
     logging.info("==> Building model..")
-    if model_type == "normal_resnet":
-        weights = ResNet50_Weights.DEFAULT
-        my_trans = NoNormalizationImageClassification(crop_size=224,resize_size=232)
-        weights.transforms = my_trans
-        network = torchvision.models.resnet50(weights=weights)
-        network.conv1 = torch.nn.Conv2d(
-            input_channels,
-            64,
-            kernel_size=(7, 7),
-            stride=(2, 2),
-            padding=(3, 3),
-            bias=False,
-        )
-    elif model_type == "euclidean_diff_ci_resnet":
-        weights = ResNet50_Weights.DEFAULT
-        my_trans = NoNormalizationImageClassification(crop_size=224,resize_size=232)
-        weights.transforms = my_trans
-        network = torchvision.models.resnet50(weights=weights)
-        network.conv1 = EuclideanColorInvariantConv2d(
-            input_channels,
-            64,
-            kernel_size=(7, 7),
-            stride=(2, 2),
-            padding=(3, 3),
-            bias=False,
-        )
-    elif model_type == "learned_diff_ci_resnet":
-        weights = ResNet50_Weights.DEFAULT
-        my_trans = NoNormalizationImageClassification(crop_size=224,resize_size=232)
-        weights.transforms = my_trans
-        network = torchvision.models.resnet50(weights=weights)
-        network.conv1 = LearnedColorInvariantConv2d(
-            input_channels,
-            64,
-            kernel_size=(7, 7),
-            stride=(2, 2),
-            padding=(3, 3),
-            bias=False,
-        )
-    elif model_type == "grayscale_normal_resnet":
-        weights = ResNet50_Weights.DEFAULT
-        my_trans = NoNormalizationImageClassification(crop_size=224,resize_size=232)
-        weights.transforms = my_trans
-        network = torchvision.models.resnet50(weights=weights)
-        network.conv1 = GrayscaleConv2d(
-            input_channels,
-            64,
-            kernel_size=(7, 7),
-            stride=(2, 2),
-            padding=(3, 3),
-            bias=False,
-        )
-    elif model_type == "grayscale_euclidean_diff_ci_resnet":
-        weights = ResNet50_Weights.DEFAULT
-        my_trans = NoNormalizationImageClassification(crop_size=224,resize_size=232)
-        weights.transforms = my_trans
-        network = torchvision.models.resnet50(weights=weights)
-        network.conv1 = GrayscaleEuclideanColorInvariantConv2d(
-            input_channels,
-            64,
-            kernel_size=(7, 7),
-            stride=(2, 2),
-            padding=(3, 3),
-            bias=False,
-        )
+    if model_type == "normal_resnet" or model_type == "euclidean_diff_ci_resnet" or model_type == "learned_diff_ci_resnet" or model_type == "grayscale_normal_resnet" or model_type == "grayscale_euclidean_diff_ci_resnet":
+        network = ResNet(model_type)
     elif model_type == "normal_lenet" or model_type == "euclidean_diff_ci_lenet" or model_type == "learned_diff_ci_lenet":
         network = LeNet(model_type)
 

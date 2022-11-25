@@ -35,8 +35,8 @@ class NoNormalizationImageClassification(nn.Module):
         format_string = self.__class__.__name__ + "("
         format_string += f"\n    crop_size={self.crop_size}"
         format_string += f"\n    resize_size={self.resize_size}"
-        format_string += f"\n    mean={self.mean}"
-        format_string += f"\n    std={self.std}"
+        # format_string += f"\n    mean={self.mean}"
+        # format_string += f"\n    std={self.std}"
         format_string += f"\n    interpolation={self.interpolation}"
         format_string += "\n)"
         return format_string

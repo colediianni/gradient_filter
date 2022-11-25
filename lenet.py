@@ -11,7 +11,6 @@ class LeNet(nn.Module):
     def __init__(self, model_type, num_classes=10):
         super().__init__()
 
-        self.mapping_model = None
         if model_type == "normal_lenet":
             self.layer1 = nn.Sequential(
                 nn.Conv2d(3, 6, kernel_size=5, stride=1, padding=0),
@@ -25,15 +24,12 @@ class LeNet(nn.Module):
                 nn.ReLU(),
                 nn.MaxPool2d(kernel_size = 2, stride = 2))
         elif model_type == "learned_diff_ci_lenet":
-            self.mapping_model = nn.Sequential(
-                        nn.Conv2d(3, 10, 1, 1),
-                        nn.ReLU(inplace=True),
-                        nn.Conv2d(10, 10, 1, 1),
-                        # nn.ReLU(inplace=True),
-                        # nn.Conv2d(10, 10, 1, 1),
-                        nn.ReLU(inplace=True),
-                        nn.Conv2d(10, 5, 1, 1),
-                    )
+            self.layer1 = nn.Sequential(
+                LearnedColorInvariantConv2d(3, 6, kernel_size=5, stride=1, padding=0),
+                nn.BatchNorm2d(6),
+                nn.ReLU(),
+                nn.MaxPool2d(kernel_size = 2, stride = 2))
+
 
         self.layer2 = nn.Sequential(
             nn.Conv2d(6, 16, kernel_size=5, stride=1, padding=0),
