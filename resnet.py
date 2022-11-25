@@ -18,7 +18,8 @@ _COMMON_META = {
 
 no_normalization_weights = Weights(
         url="https://download.pytorch.org/models/resnet50-11ad3fa6.pth",
-        transforms=partial(NoNormalizationImageClassification, crop_size=224, resize_size=232),
+        #  original: transforms=partial(NoNormalizationImageClassification, crop_size=224, resize_size=232),
+        transforms=partial(NoNormalizationImageClassification, crop_size=230, resize_size=232),
         meta={
             **_COMMON_META,
             "num_params": 25557032,
@@ -50,7 +51,7 @@ class ResNet(nn.Module):
                 64,
                 kernel_size=(7, 7),
                 stride=(2, 2),
-                padding=(3, 3),
+                padding=(0, 0),
                 bias=False,
             )
         elif model_type == "euclidean_diff_ci_resnet":
@@ -59,7 +60,7 @@ class ResNet(nn.Module):
                 64,
                 kernel_size=(7, 7),
                 stride=(2, 2),
-                padding=(3, 3),
+                padding=(0, 0),
                 bias=False,
             )
         elif model_type == "learned_diff_ci_resnet":
@@ -68,7 +69,7 @@ class ResNet(nn.Module):
                 64,
                 kernel_size=(7, 7),
                 stride=(2, 2),
-                padding=(3, 3),
+                padding=(0, 0),
                 bias=False,
             )
         elif model_type == "grayscale_normal_resnet":
@@ -77,7 +78,7 @@ class ResNet(nn.Module):
                 64,
                 kernel_size=(7, 7),
                 stride=(2, 2),
-                padding=(3, 3),
+                padding=(0, 0),
                 bias=False,
             )
         elif model_type == "grayscale_euclidean_diff_ci_resnet":
@@ -86,7 +87,7 @@ class ResNet(nn.Module):
                 64,
                 kernel_size=(7, 7),
                 stride=(2, 2),
-                padding=(3, 3),
+                padding=(0, 0),
                 bias=False,
             )
 
