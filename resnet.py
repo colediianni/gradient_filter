@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
+from functools import partial
 
 from torchvision.transforms import functional as F, InterpolationMode
 from torchvision.models._api import Weights
