@@ -40,7 +40,7 @@ no_normalization_weights = Weights(
 
 #Defining the convolutional neural network
 class ResNet(nn.Module):
-    def __init__(self, model_type, num_classes=10):
+    def __init__(self, model_type, input_channels=3, num_classes=10):
         super().__init__()
 
         self.resnet = torchvision.models.resnet50(weights=no_normalization_weights)
