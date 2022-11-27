@@ -263,6 +263,7 @@ def classification_testing_pipeline(
     total_preds_correct = 0
     for augmentation in [
         "none",
+        "recolor"
         "gaussian_noise",
         "gaussian_blur",
         "color_jitter",
