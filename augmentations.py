@@ -91,7 +91,7 @@ class ExpandColorDimension(RandomBased):
 
 class Recolor(torch.nn.Module):
     def forward(self, image: Tensor) -> Tensor:
-        rng = np.random()
+        rng = np.random
         bias = []
         bias = [[int(rng.uniform(0, 255)), int(rng.uniform(0, 255)), int(rng.uniform(0, 255))], "all"]
         device = "cuda" if cuda.is_available() else "cpu"
