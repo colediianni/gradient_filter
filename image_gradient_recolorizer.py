@@ -76,7 +76,7 @@ def remove_infs(image):
   return image.type(torch.int)
 
 
-def colorize_gradient_image(original_image, device, bias_color_location=[], weighted=True, receptive_field=2, lr=1, squared_diff=True, image_is_rgb=True, verbose=False):
+def colorize_gradient_image(original_image, device, bias_color_location=[], weighted=True, receptive_field=2, lr=1, squared_diff=True, image_is_rgb=True, verbose=False, difference_cutoff=0):
 
   original_image = original_image.clone()
   image_shape = original_image.shape
@@ -149,7 +149,11 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     # backpropogate
     diff_to_diff.backward()
 
+    print(torch.abs(update).sum())
     update = updated_colorized_images.grad
+    if torch.abs(update).sum() < difference_cutoff:
+        print("here")
+        break
     # print(update.min(), update.max(), update.type(torch.float).mean())
     # add some stochasticity (so even if all gradients are 0, backprop will still go through)
     stochasticity = torch.round((torch.rand(update.shape)-0.5) * 2).type(torch.int).to(device)
