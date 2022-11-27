@@ -151,7 +151,6 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
 
 
     update = updated_colorized_images.grad
-    print(torch.abs(update).sum())
     if torch.abs(update).sum() < difference_cutoff and p > 10:
         print("here")
         break
