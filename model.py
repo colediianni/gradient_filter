@@ -147,7 +147,7 @@ def train_classification_model(
                   'network_state_dict': network.state_dict(),
                   'optimizer_state_dict': optimizer.state_dict()
                 }, model_save_path)
-                df = pd.DataFrame(data=loss_list, columns=["train_loss", "val_loss"], dtype=pd.float64)
+                df = pd.DataFrame(data=loss_list, columns=["train_loss", "val_loss"], dtype="float64")
                 df.to_pickle(loss_save_path)
                 # torch.save(network.state_dict(), model_save_path)
 
