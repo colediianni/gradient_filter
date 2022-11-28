@@ -77,7 +77,7 @@ def train_classification_model(
         train_loss_history = list(pd.read_pickle(loss_save_path)["train_loss"])
         val_loss_history = list(pd.read_pickle(loss_save_path)["val_loss"])
         best_val_loss = min(val_loss_history)
-        loss_list = list(pd.read_pickle(loss_save_path)["train_loss":"val_loss"])
+        loss_list = list(pd.read_pickle(loss_save_path)[["train_loss", "val_loss"]])
         print("loss_list", loss_list)
 
     for epoch in range(completed_epochs, epochs):
