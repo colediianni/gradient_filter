@@ -51,9 +51,11 @@ def train_classification_model(
     val_loader,
     device,
     model_save_path: Path,
+    loss_save_path: Path,
     loss_plot_path: Path,
     epochs=100,
     lr=0.001,
+    use_saved_model=False
 ):
     optimizer = optim.SGD(
         network.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4
@@ -66,8 +68,22 @@ def train_classification_model(
     best_val_loss = torch.inf
     train_loss_history = []
     val_loss_history = []
+    loss_list = []
 
-    for epoch in range(epochs):
+    completed_epochs = 0
+    if use_saved_model:
+        checkpoint = torch.load(model_save_path)
+        network.load_state_dict(checkpoint['network_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        completed_epochs = checkpoint['epoch']
+        model.train()
+        train_loss_history = list(pd.read_pickle(loss_save_path)["train_loss"])
+        val_loss_history = list(pd.read_pickle(loss_save_path)["val_loss"])
+        best_val_loss = min(val_loss_history)
+        loss_list = list(pd.read_pickle(loss_save_path)["train_loss", "val_loss"])
+        print("loss_list", loss_list)
+
+    for epoch in range(completed_epochs, epochs):
 
         total_correct = 0.0
         total_loss = 0.0
@@ -86,7 +102,7 @@ def train_classification_model(
             # end = time.time()
             # print("backward", end - start)
 
-            total_loss += loss.item() / len(train_loader)
+            total_loss += loss.item() / len(train_loader.dataset)
             total_correct += preds.argmax(dim=1).eq(labels).sum().item()
 
         train_loss_history.append(total_loss)
@@ -111,8 +127,10 @@ def train_classification_model(
 
                 preds = network(images)  # Pass batch
                 loss = F.cross_entropy(preds, labels)  # Calculate Loss
-                val_loss += loss.item() / len(val_loader)
+                val_loss += loss.item() / len(val_loader.dataset)
                 val_correct += preds.argmax(dim=1).eq(labels).sum().item()
+
+            loss_list.append([total_loss, val_loss])
 
             if val_loss < best_val_loss:
                 # logging.info(
@@ -126,7 +144,14 @@ def train_classification_model(
                     )
                 )
                 best_val_loss = val_loss
-                torch.save(network.state_dict(), model_save_path)
+                torch.save({
+                  'epoch': epoch+1,
+                  'network_state_dict': network.state_dict(),
+                  'optimizer_state_dict': optimizer.state_dict()
+                }, model_save_path)
+                df = pd.DataFrame(data=loss_list, columns=["train_loss", "val_loss"])
+                df.to_pickle(loss_save_path)
+                # torch.save(network.state_dict(), model_save_path)
 
             val_loss_history.append(val_loss)
 
@@ -155,6 +180,7 @@ def classification_training_pipeline(
     epochs=100,
     lr=0.001,
     model_load_path: Path = None,
+    use_saved_model=False
 ):
     if not isinstance(base_path, Path):
         base_path = Path(base_path)
@@ -196,16 +222,24 @@ def classification_training_pipeline(
         / "images"
         / (model_type + "_" + dataset_name + "_" + colorspace)
     )
+    loss_save_path = (
+        base_path
+        / "logs"
+        / (model_type + "_" + dataset_name + "_" + colorspace)
+    )
+
     # train model
     network = train_classification_model(
         network,
         train_loader,
         val_loader,
         device,
-        model_save_path,
-        loss_plot_path,
+        model_save_path=model_save_path,
+        loss_save_path=loss_save_path,
+        loss_plot_path=loss_plot_path,
         epochs=epochs,
         lr=lr,
+        use_saved_model=use_saved_model
     )
 
 
