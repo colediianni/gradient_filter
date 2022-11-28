@@ -73,13 +73,13 @@ def train_classification_model(
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         completed_epochs = checkpoint['epoch']
         network.train()
-        print(pd.read_pickle(loss_save_path))
-        print(pd.read_pickle(loss_save_path)[["train_loss", "val_loss"]])
+        # print(pd.read_pickle(loss_save_path))
+        # print(pd.read_pickle(loss_save_path)[["train_loss", "val_loss"]])
         train_loss_history = list(pd.read_pickle(loss_save_path)["train_loss"])
         val_loss_history = list(pd.read_pickle(loss_save_path)["val_loss"])
         best_val_loss = min(val_loss_history)
         loss_list = (pd.read_pickle(loss_save_path)[["train_loss", "val_loss"]]).values.tolist()
-        print("loss_list", loss_list)
+        # print("loss_list", loss_list)
 
     for epoch in range(completed_epochs, epochs):
 
@@ -147,7 +147,7 @@ def train_classification_model(
                   'network_state_dict': network.state_dict(),
                   'optimizer_state_dict': optimizer.state_dict()
                 }, model_save_path)
-                df = pd.DataFrame(data=loss_list, columns=["train_loss", "val_loss"])
+                df = pd.DataFrame(data=loss_list, columns=["train_loss", "val_loss"], dtype=pd.float64)
                 df.to_pickle(loss_save_path)
                 # torch.save(network.state_dict(), model_save_path)
 
