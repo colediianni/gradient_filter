@@ -64,7 +64,7 @@ def train_classification_model(
     best_val_loss = torch.inf
     train_loss_history = []
     val_loss_history = []
-    loss_list = []
+    # loss_list = []
 
     completed_epochs = 0
     if use_saved_model:
@@ -75,10 +75,10 @@ def train_classification_model(
         network.train()
         # print(pd.read_pickle(loss_save_path))
         # print(pd.read_pickle(loss_save_path)[["train_loss", "val_loss"]])
-        train_loss_history = list(pd.read_pickle(loss_save_path)["train_loss"])
-        val_loss_history = list(pd.read_pickle(loss_save_path)["val_loss"])
+        train_loss_history = checkpoint["train_loss"]
+        val_loss_history = checkpoint["val_loss"]
         best_val_loss = min(val_loss_history)
-        loss_list = (pd.read_pickle(loss_save_path)[["train_loss", "val_loss"]]).values.tolist()
+        # loss_list = (pd.read_pickle(loss_save_path)[["train_loss", "val_loss"]]).values.tolist()
         # print("loss_list", loss_list)
 
     for epoch in range(completed_epochs, epochs):
@@ -128,7 +128,8 @@ def train_classification_model(
                 val_loss += loss.item() / len(val_loader.dataset)
                 val_correct += preds.argmax(dim=1).eq(labels).sum().item()
 
-            loss_list.append([total_loss, val_loss])
+            # loss_list.append([total_loss, val_loss])
+            val_loss_history.append(val_loss)
 
             if val_loss < best_val_loss:
                 # logging.info(
@@ -144,14 +145,16 @@ def train_classification_model(
                 best_val_loss = val_loss
                 torch.save({
                   'epoch': epoch+1,
+                  "train_loss": train_loss_history,
+                  "val_loss": val_loss_history,
                   'network_state_dict': network.state_dict(),
                   'optimizer_state_dict': optimizer.state_dict()
                 }, model_save_path)
-                df = pd.DataFrame(data=loss_list, columns=["train_loss", "val_loss"], dtype="float64")
-                df.to_pickle(loss_save_path)
+                # df = pd.DataFrame(data=loss_list, columns=["train_loss", "val_loss"], dtype="float64")
+                # df.to_pickle(loss_save_path)
                 # torch.save(network.state_dict(), model_save_path)
 
-            val_loss_history.append(val_loss)
+
 
         plt.plot(train_loss_history, "-b", label="train")
         plt.plot(val_loss_history, "-r", label="val")
@@ -290,7 +293,7 @@ def classification_testing_pipeline(
     total_preds_correct = 0
     for augmentation in [
         "none",
-        # "recolor",
+        # "recolor", # IF USING THIS AUGMENTATION, MUST USE AFTER RESIZING IMAGE!!!
         "gaussian_noise",
         "gaussian_blur",
         "color_jitter",
