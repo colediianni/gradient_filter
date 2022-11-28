@@ -73,6 +73,7 @@ def train_classification_model(
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         completed_epochs = checkpoint['epoch']
         network.train()
+        print(pd.read_pickle(loss_save_path))
         train_loss_history = list(pd.read_pickle(loss_save_path)["train_loss"])
         val_loss_history = list(pd.read_pickle(loss_save_path)["val_loss"])
         best_val_loss = min(val_loss_history)
