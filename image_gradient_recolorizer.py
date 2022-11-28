@@ -93,6 +93,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
 
   h, w = image_shape[2], image_shape[3]
 
+  using_bias = False
   if len(bias_color_location) == 0:
     colorized_images = (torch.rand(image_shape)*255).type(torch.int).to(device)
   elif bias_color_location[1] == "all":
@@ -102,6 +103,11 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     # print(torch.tensor(bias_color_location[0]).type(torch.int).to(device))
     colorized_images += torch.tensor(bias_color_location[0]).type(torch.int).to(device)
     colorized_images = colorized_images.permute([0, 3, 1, 2])
+  else:
+    using_bias = True
+    colorized_images = (torch.rand(image_shape)*255).type(torch.int).to(device)
+    for index in range(len(bias_color_location[0])):
+        colorized_images[tuple(bias_color_location[1])] = torch.tensor(bias_color_location[0]).to(device)
 
   # remove same-pixel comparison from gradients
   num_directions = gradient_image.shape[1]
@@ -167,6 +173,9 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     # update colorized_image to be center image of updated_colorized_images
     new_image = updated_colorized_images[:, :, receptive_field:receptive_field+h, receptive_field:receptive_field+w]
     colorized_images = new_image.detach()
+    if using_bias:
+        for index in range(len(bias_color_location[0])):
+            colorized_images[tuple(bias_color_location[1])] = torch.tensor(bias_color_location[0]).to(device)
 
   if verbose:
       plt.imshow(remove_infs(colorized_images[0].permute([1, 2, 0])).cpu().detach().numpy())
