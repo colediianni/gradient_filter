@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 from typing import Union
 import time
+import pandas as pd
 
 import matplotlib.pyplot as plt
 import torch
@@ -24,7 +25,6 @@ def get_classification_model(
     model_type,
     device,
     input_channels,
-    load_from_path: Path = None,
 ):
     logging.info("==> Building model..")
     if model_type == "normal_resnet" or model_type == "euclidean_diff_ci_resnet" or model_type == "learned_diff_ci_resnet" or model_type == "grayscale_normal_resnet" or model_type == "grayscale_euclidean_diff_ci_resnet":
@@ -37,10 +37,6 @@ def get_classification_model(
     network = network.to(device)
     if device == "cuda":
         cudnn.benchmark = True
-    if load_from_path is not None:
-        network.load_state_dict(
-            torch.load(load_from_path, map_location=torch.device(device))
-        )
 
     return network
 
@@ -179,14 +175,10 @@ def classification_training_pipeline(
     batch_size=128,
     epochs=100,
     lr=0.001,
-    model_load_path: Path = None,
     use_saved_model=False
 ):
     if not isinstance(base_path, Path):
         base_path = Path(base_path)
-
-    if model_load_path is not None and isinstance(model_load_path, Path):
-        model_load_path = Path(model_load_path)
 
     model_save_path = (
         base_path
@@ -214,7 +206,6 @@ def classification_training_pipeline(
         model_type,
         device,
         input_channels,
-        load_from_path=model_load_path,
     )
 
     loss_plot_path = (
