@@ -47,7 +47,6 @@ def train_classification_model(
     val_loader,
     device,
     model_save_path: Path,
-    loss_save_path: Path,
     loss_plot_path: Path,
     epochs=100,
     lr=0.001,
@@ -73,13 +72,9 @@ def train_classification_model(
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         completed_epochs = checkpoint['epoch']
         network.train()
-        # print(pd.read_pickle(loss_save_path))
-        # print(pd.read_pickle(loss_save_path)[["train_loss", "val_loss"]])
         train_loss_history = checkpoint["train_loss"]
         val_loss_history = checkpoint["val_loss"]
         best_val_loss = min(val_loss_history)
-        # loss_list = (pd.read_pickle(loss_save_path)[["train_loss", "val_loss"]]).values.tolist()
-        # print("loss_list", loss_list)
 
     for epoch in range(completed_epochs, epochs):
 
@@ -128,7 +123,6 @@ def train_classification_model(
                 val_loss += loss.item() / len(val_loader.dataset)
                 val_correct += preds.argmax(dim=1).eq(labels).sum().item()
 
-            # loss_list.append([total_loss, val_loss])
             val_loss_history.append(val_loss)
 
             if val_loss < best_val_loss:
@@ -150,11 +144,7 @@ def train_classification_model(
                   'network_state_dict': network.state_dict(),
                   'optimizer_state_dict': optimizer.state_dict()
                 }, model_save_path)
-                # df = pd.DataFrame(data=loss_list, columns=["train_loss", "val_loss"], dtype="float64")
-                # df.to_pickle(loss_save_path)
                 # torch.save(network.state_dict(), model_save_path)
-
-
 
         plt.plot(train_loss_history, "-b", label="train")
         plt.plot(val_loss_history, "-r", label="val")
@@ -218,11 +208,6 @@ def classification_training_pipeline(
         / "images"
         / (model_type + "_" + dataset_name + "_" + colorspace)
     )
-    loss_save_path = (
-        base_path
-        / "logs"
-        / (model_type + "_" + dataset_name + "_" + colorspace)
-    )
 
     # train model
     network = train_classification_model(
@@ -231,7 +216,6 @@ def classification_training_pipeline(
         val_loader,
         device,
         model_save_path=model_save_path,
-        loss_save_path=loss_save_path,
         loss_plot_path=loss_plot_path,
         epochs=epochs,
         lr=lr,
