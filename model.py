@@ -25,6 +25,7 @@ def get_classification_model(
     model_type,
     device,
     input_channels,
+    load_from_path=None
 ):
     logging.info("==> Building model..")
     if model_type == "normal_resnet" or model_type == "euclidean_diff_ci_resnet" or model_type == "learned_diff_ci_resnet" or model_type == "grayscale_normal_resnet" or model_type == "grayscale_euclidean_diff_ci_resnet":
@@ -37,6 +38,10 @@ def get_classification_model(
     network = network.to(device)
     if device == "cuda":
         cudnn.benchmark = True
+    if load_from_path != None:
+        checkpoint = torch.load(load_from_path)
+        network.load_state_dict(checkpoint['network_state_dict'])
+        network.eval()
 
     return network
 
