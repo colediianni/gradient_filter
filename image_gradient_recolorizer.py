@@ -76,7 +76,7 @@ def remove_infs(image):
   return image.type(torch.int)
 
 
-def colorize_gradient_image(original_image, device, bias_color_location=[], weighted=True, receptive_field=2, lr=1, squared_diff=True, image_is_rgb=True, verbose=False, num_iterations=500, bias_weight=8):
+def colorize_gradient_image(original_image, device, bias_color_location=[], weighted=True, receptive_field=2, lr=1, squared_diff=True, image_is_rgb=True, verbose=False, num_iterations=500, bias_weight=1):
 
   original_image = original_image.clone()
   image_shape = original_image.shape
