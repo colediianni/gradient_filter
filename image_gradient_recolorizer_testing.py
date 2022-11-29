@@ -37,7 +37,7 @@ gradient_image = (gradient_image * 255).type(torch.int)
 plt.imshow(image[0].permute([1, 2, 0]))
 plt.show()
 
-generated_image = colorize_gradient_image(image, device, bias_color_location=[]], weighted=False, receptive_field=4, lr=2)
+generated_image = colorize_gradient_image(image, device, bias_color_location=[], weighted=False, receptive_field=4, lr=2)
 bias = [[255, 0, 0], "all"]
 generated_image = colorize_gradient_image(image, device, bias_color_location=bias, weighted=False, receptive_field=4, lr=2)
 bias = [[[100, 0, 0], [200, 200, 200]], [[10, 10], [20, 20]]]
