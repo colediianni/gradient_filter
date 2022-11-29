@@ -108,6 +108,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     colorized_images = (torch.rand(image_shape)*255).type(torch.int).to(device)
     # print(colorized_images.shape) # torch.Size([128, 3, 64, 64])
     for index in range(len(bias_color_location[0])):
+        print(bias_color_location[1][index])
         colorized_images[:, :, tuple(bias_color_location[1][index])] = torch.tensor(bias_color_location[0][index]).to(device)
 
   # remove same-pixel comparison from gradients
