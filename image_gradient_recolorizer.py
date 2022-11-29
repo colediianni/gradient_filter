@@ -148,11 +148,13 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
       # print("predicted_gradients", predicted_gradients.max())
       # print("gradient_image", gradient_image.max())
       if not squared_diff:
+          print(torch.mul(torch.abs(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).shape)
           diff_to_diff = diff_to_diff + (1/weight) * torch.mul(torch.abs(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).sum()
       elif squared_diff:
+          print(torch.mul(torch.square(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).shape)
           diff_to_diff = diff_to_diff + (1/weight) * torch.mul(torch.square(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).sum()
 
-    print("diff_to_diff", diff_to_diff.shape)
+    # print("diff_to_diff", diff_to_diff)
     # backpropogate
     diff_to_diff.backward()
 
