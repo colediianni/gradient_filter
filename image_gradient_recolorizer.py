@@ -91,7 +91,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
   gradient_image = (gradient_image * 255).type(torch.int)
   gradient_image = gradient_image.clone().to(device)
 
-  h, w = image_shape[2], image_shape[3]
+  batch_size, h, w = image_shape[0], image_shape[2], image_shape[3]
 
   using_bias = False
   if len(bias_color_location) == 0:
@@ -147,11 +147,17 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
 
       # print("predicted_gradients", predicted_gradients.max())
       # print("gradient_image", gradient_image.max())
+      bias_pixel_importance = torch.ones([batch_size, h, w], device=device)
+      if using_bias:
+          for index in range(len(bias_color_location[0])):
+              bias_pixel_importance[:, bias_color_location[1][index][0], bias_color_location[1][index][1]] *= 8
+      print("bias_pixel_importance", bias_pixel_importance.shape)
+
       if not squared_diff:
-          print(torch.mul(torch.abs(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).shape)
+          print(torch.mul(torch.abs(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).shape) # torch.Size([128, 64, 64])
           diff_to_diff = diff_to_diff + (1/weight) * torch.mul(torch.abs(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).sum()
       elif squared_diff:
-          print(torch.mul(torch.square(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).shape)
+          print(torch.mul(torch.square(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).shape) # torch.Size([128, 64, 64])
           diff_to_diff = diff_to_diff + (1/weight) * torch.mul(torch.square(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).sum()
 
     # print("diff_to_diff", diff_to_diff)
@@ -166,9 +172,7 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
     update += stochasticity
     # print("update", update.max())
     # print("update", torch.abs(update).min(), torch.abs(update).max(), torch.abs(update).type(torch.float).mean())
-    dynamic_lr = lr/torch.abs(update).type(torch.float).mean()
 
-    # print("(dynamic_lr * update)", (dynamic_lr * update).min(), (dynamic_lr * update).max(), (dynamic_lr * update).type(torch.float).mean())
     updated_colorized_images = updated_colorized_images - (lr * update)
     updated_colorized_images = torch.clip(updated_colorized_images, 0, 255)
     # updated_colorized_images = torch.clip(torch.round(updated_colorized_images).type(torch.int), 0, 255)
