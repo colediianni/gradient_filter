@@ -76,7 +76,7 @@ def remove_infs(image):
   return image.type(torch.int)
 
 
-def colorize_gradient_image(original_image, device, bias_color_location=[], weighted=True, receptive_field=2, lr=1, squared_diff=True, image_is_rgb=True, verbose=False, num_iterations=500):
+def colorize_gradient_image(original_image, device, bias_color_location=[], weighted=True, receptive_field=2, lr=1, squared_diff=True, image_is_rgb=True, verbose=False, num_iterations=500, bias_weight=8):
 
   original_image = original_image.clone()
   image_shape = original_image.shape
@@ -150,15 +150,15 @@ def colorize_gradient_image(original_image, device, bias_color_location=[], weig
       bias_pixel_importance = torch.ones([batch_size, h, w], device=device)
       if using_bias:
           for index in range(len(bias_color_location[0])):
-              bias_pixel_importance[:, bias_color_location[1][index][0], bias_color_location[1][index][1]] *= 8
-      print("bias_pixel_importance", bias_pixel_importance.shape)
+              bias_pixel_importance[:, bias_color_location[1][index][0], bias_color_location[1][index][1]] *= bias_weight
+      # print("bias_pixel_importance", bias_pixel_importance.shape)
 
       if not squared_diff:
-          print(torch.mul(torch.abs(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).shape) # torch.Size([128, 64, 64])
-          diff_to_diff = diff_to_diff + (1/weight) * torch.mul(torch.abs(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).sum()
+          # print(torch.mul(torch.abs(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).shape) # torch.Size([128, 64, 64])
+          diff_to_diff = diff_to_diff + (1/weight) * torch.mul(torch.mul(torch.abs(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]), bias_pixel_importance).sum()
       elif squared_diff:
-          print(torch.mul(torch.square(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).shape) # torch.Size([128, 64, 64])
-          diff_to_diff = diff_to_diff + (1/weight) * torch.mul(torch.square(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).sum()
+          # print(torch.mul(torch.square(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]).shape) # torch.Size([128, 64, 64])
+          diff_to_diff = diff_to_diff + (1/weight) * torch.mul(torch.mul(torch.square(predicted_gradients - gradient_image[:, direction]), usable_gradients[:, direction]), bias_pixel_importance).sum()
 
     # print("diff_to_diff", diff_to_diff)
     # backpropogate
