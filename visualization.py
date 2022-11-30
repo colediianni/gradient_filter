@@ -43,7 +43,7 @@ def get_rainbow_image(gradients_per_channel=range(255)):
   return image
 
 image = get_rainbow_image(gradients_per_channel=range(0, 255, 10)).type(torch.float).to(device)
-encoded_image = network.module.conv1.mapping_model(image.unsqueeze(1).permute([2, 0, 1]))
+encoded_image = network.module.resnet.conv1.mapping_model(image.unsqueeze(1).permute([2, 0, 1]))
 encoded_image = encoded_image.squeeze().permute([1, 0]).detach().cpu().numpy()
 
 tsne = TSNE(n_components=2, verbose=1, random_state=123)
@@ -60,7 +60,7 @@ plt.show()
 
 
 image = get_rainbow_image(gradients_per_channel=range(0, 255, 20)).type(torch.float).to(device)
-encoded_image = network.module.conv1.mapping_model(image.unsqueeze(1).permute([2, 0, 1]))
+encoded_image = network.module.resnet.conv1.mapping_model(image.unsqueeze(1).permute([2, 0, 1]))
 encoded_image = encoded_image.squeeze().permute([1, 0]).detach().cpu().numpy()
 
 # global count
