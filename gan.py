@@ -33,29 +33,52 @@ class Generator(nn.Module):
         self.nz = nz
         self.ngf = ngf
         self.nc = nc
+        self.mult = nc // 3
+
         self.main = nn.Sequential(
             # input is Z, going into a convolution
-            nn.ConvTranspose2d(self.nz, self.ngf * 8, 4, 1, 0, bias=False),
-            nn.BatchNorm2d(self.ngf * 8),
+            nn.ConvTranspose2d(
+                self.nz, self.ngf * 8 * self.mult, 4, 1, 0, bias=False
+            ),
+            nn.BatchNorm2d(self.ngf * 8 * self.mult),
             nn.ReLU(True),
             # state size. (self.ngf*8) x 4 x 4
             nn.ConvTranspose2d(
-                self.ngf * 8, self.ngf * 4, 4, 2, 1, bias=False
+                self.ngf * 8 * self.mult,
+                self.ngf * 4 * self.mult,
+                4,
+                2,
+                1,
+                bias=False,
             ),
-            nn.BatchNorm2d(self.ngf * 4),
+            nn.BatchNorm2d(self.ngf * 4 * self.mult),
             nn.ReLU(True),
             # state size. (self.ngf*4) x 8 x 8
             nn.ConvTranspose2d(
-                self.ngf * 4, self.ngf * 2, 4, 2, 1, bias=False
+                self.ngf * 4 * self.mult,
+                self.ngf * 2 * self.mult,
+                4,
+                2,
+                1,
+                bias=False,
             ),
-            nn.BatchNorm2d(self.ngf * 2),
+            nn.BatchNorm2d(self.ngf * 2 * self.mult),
             nn.ReLU(True),
             # state size. (self.ngf*2) x 16 x 16
-            nn.ConvTranspose2d(self.ngf * 2, self.ngf, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(self.ngf),
+            nn.ConvTranspose2d(
+                self.ngf * 2 * self.mult,
+                self.ngf * self.mult,
+                4,
+                2,
+                1,
+                bias=False,
+            ),
+            nn.BatchNorm2d(self.ngf * self.mult),
             nn.ReLU(True),
             # state size. (self.ngf) x 32 x 32
-            nn.ConvTranspose2d(self.ngf, self.nc, 4, 2, 1, bias=False),
+            nn.ConvTranspose2d(
+                self.ngf * self.mult, self.nc, 4, 2, 1, bias=False
+            ),
             nn.ReLU(True)
             # state size. (self.nc) x 64 x 64
         )
@@ -74,24 +97,34 @@ class Discriminator(nn.Module):
     def __init__(self, ngpu, ndf, nc):
         super(Discriminator, self).__init__()
         self.ngpu = ngpu
+        self.mult = nc // 3
+
         self.main = nn.Sequential(
             # input is (nc) x 64 x 64
-            AbsColorInvariantConv2d(nc, ndf, 4, 2, padding=0, bias=False),
+            AbsColorInvariantConv2d(
+                nc, ndf * self.mult, 4, 2, padding=0, bias=False
+            ),
             nn.LeakyReLU(0.2, inplace=True),
             # state size. (ndf) x 32 x 32
-            nn.Conv2d(ndf, ndf * 2, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(ndf * 2),
+            nn.Conv2d(
+                ndf * self.mult, ndf * 2 * self.mult, 4, 2, 1, bias=False
+            ),
+            nn.BatchNorm2d(ndf * 2 * self.mult),
             nn.LeakyReLU(0.2, inplace=True),
             # state size. (ndf*2) x 16 x 16
-            nn.Conv2d(ndf * 2, ndf * 4, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(ndf * 4),
+            nn.Conv2d(
+                ndf * 2 * self.mult, ndf * 4 * self.mult, 4, 2, 1, bias=False
+            ),
+            nn.BatchNorm2d(ndf * 4 * self.mult),
             nn.LeakyReLU(0.2, inplace=True),
             # state size. (ndf*4) x 8 x 8
-            nn.Conv2d(ndf * 4, ndf * 8, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(ndf * 8),
+            nn.Conv2d(
+                ndf * 4 * self.mult, ndf * 8 * self.mult, 4, 2, 1, bias=False
+            ),
+            nn.BatchNorm2d(ndf * 8 * self.mult),
             nn.LeakyReLU(0.2, inplace=True),
             # state size. (ndf*8) x 4 x 4
-            nn.Conv2d(ndf * 8, 1, 4, 1, 0, bias=False),
+            nn.Conv2d(ndf * 8 * self.mult, 1, 4, 1, 0, bias=False),
             nn.Sigmoid(),
         )
 
@@ -216,7 +249,7 @@ def train_gan(
 
     g_loss = []
     d_loss = []
-    h, w = 64, 64 # NOTE: h, w hardcoded
+    h, w = 64, 64  # NOTE: h, w hardcoded
     mask = torch.ones([batch_size, nc, h, w], device=device)
     for y_val in range(h):
         for x_val in range(w):
@@ -224,11 +257,16 @@ def train_gan(
                 neighbor_x_shift = direction % int(np.sqrt(nc))
                 neighbor_y_shift = int(direction / int(np.sqrt(nc)))
 
-                if y_val + neighbor_y_shift < 0 or y_val + neighbor_y_shift >= h:
+                if (
+                    y_val + neighbor_y_shift < 0
+                    or y_val + neighbor_y_shift >= h
+                ):
                     mask[:, direction, y_val, x_val] = 0
-                if x_val + neighbor_x_shift < 0 or x_val + neighbor_x_shift >= w:
+                if (
+                    x_val + neighbor_x_shift < 0
+                    or x_val + neighbor_x_shift >= w
+                ):
                     mask[:, direction, y_val, x_val] = 0
-
 
     for epoch in range(epochs):
         for i, (images, _) in enumerate(dataloader, 0):
@@ -334,10 +372,8 @@ def train_gan(
                     epoch,
                 )
 
-                save_real_image = (
-                    decolorized_images
-                    .detach()
-                    .requires_grad_(requires_grad=False)
+                save_real_image = decolorized_images.detach().requires_grad_(
+                    requires_grad=False
                 )
                 # print("save_real_image", save_real_image.max(), save_real_image.min())
                 real_images = colorize_gradient_image(
@@ -356,7 +392,7 @@ def train_gan(
                     "real",
                     dataset_name,
                     colorspace,
-                    "real"
+                    "real",
                 )
 
         # save latest
