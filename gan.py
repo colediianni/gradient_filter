@@ -129,6 +129,7 @@ class Discriminator(nn.Module):
         )
 
     def forward(self, input):
+        print(input.shape)
         if input.is_cuda and self.ngpu > 1:
             output = nn.parallel.data_parallel(
                 self.main, input, range(self.ngpu)
