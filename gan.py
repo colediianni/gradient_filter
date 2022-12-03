@@ -275,7 +275,7 @@ def train_gan(
             # train with real
             netD.zero_grad()
             images = images.to(device)
-            decolorized_images = decolorizer(images)
+            decolorized_images = decolorizer(images).to(device)
             # print(decolorized_images.shape) # torch.Size([128, 25, 64, 64])
             # print("decolorized_images", decolorized_images.max())
             # batch_size = decolorized_images.size(0)
