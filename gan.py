@@ -12,7 +12,7 @@ import numpy as np
 
 from data import load_data_gan
 from image_gradient_recolorizer import GanDecolorizer, colorize_gradient_image
-from layers import AbsColorInvariantConv2d
+from layers import EuclideanColorInvariantConv2d
 
 cudnn.benchmark = True
 
@@ -101,7 +101,7 @@ class Discriminator(nn.Module):
 
         self.main = nn.Sequential(
             # input is (nc) x 64 x 64
-            AbsColorInvariantConv2d(
+            EuclideanColorInvariantConv2d(
                 nc, ndf * self.mult, 4, 2, padding=0, bias=False
             ),
             nn.LeakyReLU(0.2, inplace=True),
