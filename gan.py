@@ -32,8 +32,8 @@ class Generator(nn.Module):
         self.nz = nz
         self.ngf = ngf
         self.nc = nc
-        self.mult = nc // 3
-        # self.mult = 1
+        # self.mult = nc // 3
+        self.mult = 4
 
         self.main = nn.Sequential(
             # input is Z, going into a convolution
