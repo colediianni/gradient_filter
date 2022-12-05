@@ -39,8 +39,13 @@ def get_classification_model(
     if device == "cuda":
         cudnn.benchmark = True
     if load_from_path != None:
-        checkpoint = torch.load(load_from_path)
-        network.load_state_dict(checkpoint['network_state_dict'])
+        try:
+            checkpoint = torch.load(load_from_path)
+            network.load_state_dict(checkpoint['network_state_dict'])
+        except:
+            network.load_state_dict(
+                torch.load(load_from_path, map_location=torch.device(device))
+            )
         network.eval()
 
     return network
