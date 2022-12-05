@@ -224,7 +224,7 @@ def train_gan(
     # number of gpu's available
     ngpu = 1
     # input noise dimension
-    nz = 100
+    nz = 256 # 100
     # number of generator filters
     ngf = 64
     # number of discriminator filters
