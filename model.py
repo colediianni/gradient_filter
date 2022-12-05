@@ -290,7 +290,7 @@ def classification_testing_pipeline(
         # "per_pixel_channel_permutation",
         "channel_permutation",
         "invert",
-        "hue_shift",
+        "channel_drop", # "hue_shift",
         "grayscale",
         # "recolor"
     ]:
