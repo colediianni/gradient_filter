@@ -33,7 +33,7 @@ class Generator(nn.Module):
         self.ngf = ngf
         self.nc = nc
         self.mult = nc // 3
-        self.mult = 1
+        # self.mult = 1
 
         self.main = nn.Sequential(
             # input is Z, going into a convolution
@@ -97,7 +97,7 @@ class Discriminator(nn.Module):
     def __init__(self, ngpu, ndf, nc):
         super(Discriminator, self).__init__()
         self.ngpu = ngpu
-        self.mult = nc // 3
+        # self.mult = nc // 3
         self.mult = 1
 
         self.main = nn.Sequential(
