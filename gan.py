@@ -79,8 +79,8 @@ class Generator(nn.Module):
             nn.ConvTranspose2d(
                 self.ngf * self.mult, self.nc, 4, 2, 1, bias=False
             ),
-            nn.ReLU(True)
-            nn.Conv2d(self.nc, self.nc, int(np.sqrt(self.nc)), 1, padding=0, bias=False),
+            nn.ReLU(True),
+            nn.Conv2d(self.nc, self.nc, int(np.sqrt(self.nc)), 1, padding=0, bias=False)
             # state size. (self.nc) x 64 x 64
         )
 
