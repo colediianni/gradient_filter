@@ -26,7 +26,7 @@ def weights_init(m):
 
 
 class Generator(nn.Module):
-    def __init__(self, ngpu, nz, ngf, nc, receptive_field):
+    def __init__(self, ngpu, nz, ngf, nc, receptive_field, device):
         super(Generator, self).__init__()
         self.ngpu = ngpu
         self.nz = nz
@@ -34,6 +34,7 @@ class Generator(nn.Module):
         self.nc = nc
         # self.mult = nc // 3
         self.mult = 1
+        self.device = device
         self.decolorizer = GanDecolorizer(receptive_field, distance_metric="euclidean")
 
         self.main = nn.Sequential(
@@ -92,7 +93,7 @@ class Generator(nn.Module):
             )
         else:
             output = self.main(input)
-        return self.decolorizer(output)
+        return self.decolorizer(output).to(self.device)
 
 
 class Discriminator(nn.Module):
@@ -232,7 +233,7 @@ def train_gan(
     # number of discriminator filters
     ndf = 64
 
-    netG = Generator(ngpu=ngpu, nz=nz, ngf=ngf, nc=3, receptive_field=receptive_field).to(device)
+    netG = Generator(ngpu=ngpu, nz=nz, ngf=ngf, nc=3, receptive_field=receptive_field, device=device).to(device)
     netG.apply(weights_init)
 
     netD = Discriminator(ngpu, ndf, nc).to(device)
