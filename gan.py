@@ -254,8 +254,8 @@ def train_gan(
     for y_val in range(h):
         for x_val in range(w):
             for direction in range(nc):
-                neighbor_x_shift = direction % int(np.sqrt(nc))
-                neighbor_y_shift = int(direction / int(np.sqrt(nc)))
+                neighbor_x_shift = (direction % int(np.sqrt(nc))) - receptive_field
+                neighbor_y_shift = int(direction / int(np.sqrt(nc)))  - receptive_field
 
                 if (
                     y_val + neighbor_y_shift < 0
