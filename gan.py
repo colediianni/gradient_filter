@@ -81,7 +81,7 @@ class Generator(nn.Module):
             # ),
 
             nn.ConvTranspose2d(
-                self.ngf * 2 * self.mult, self.nc, 4, 4, 1, bias=False
+                self.ngf * 2 * self.mult, self.nc, 4, 4, 9, bias=False
             ),
 
             nn.ReLU(True)
