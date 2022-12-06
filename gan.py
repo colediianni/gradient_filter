@@ -92,6 +92,7 @@ class Generator(nn.Module):
             )
         else:
             output = self.main(input)
+        print(self.decolorizer(output).to(device).shape)
         return self.decolorizer(output).to(device)
 
 
