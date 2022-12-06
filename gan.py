@@ -65,20 +65,25 @@ class Generator(nn.Module):
             nn.BatchNorm2d(self.ngf * 2 * self.mult),
             nn.ReLU(True),
             # state size. (self.ngf*2) x 16 x 16
-            nn.ConvTranspose2d(
-                self.ngf * 2 * self.mult,
-                self.ngf * self.mult,
-                4,
-                2,
-                1,
-                bias=False,
-            ),
-            nn.BatchNorm2d(self.ngf * self.mult),
-            nn.ReLU(True),
+            # nn.ConvTranspose2d(
+            #     self.ngf * 2 * self.mult,
+            #     self.ngf * self.mult,
+            #     4,
+            #     2,
+            #     1,
+            #     bias=False,
+            # ),
+            # nn.BatchNorm2d(self.ngf * self.mult),
+            # nn.ReLU(True),
             # state size. (self.ngf) x 32 x 32
+            # nn.ConvTranspose2d(
+            #     self.ngf * self.mult, self.nc, 4, 2, 1, bias=False
+            # ),
+
             nn.ConvTranspose2d(
-                self.ngf * self.mult, self.nc, 4, 2, 1, bias=False
+                self.ngf * 2 * self.mult, self.nc, 4, 4, 1, bias=False
             ),
+
             nn.ReLU(True)
             # state size. (self.nc) x 64 x 64
         )
