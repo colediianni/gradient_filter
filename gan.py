@@ -78,7 +78,7 @@ class Generator(nn.Module):
             nn.ReLU(True),
             # state size. (self.ngf) x 32 x 32
             nn.ConvTranspose2d(
-                self.ngf * self.mult, self.nc * self.mult, 4, 2, 1, bias=False
+                self.ngf * self.mult, self.nc, 4, 2, 1, bias=False
             ),
             nn.ReLU(True),
             # nn.Conv2d(self.nc * self.mult, self.nc, int(np.sqrt(self.nc)), 1, padding=int((np.sqrt(self.nc) - 1)/2), bias=False)
@@ -233,10 +233,10 @@ def train_gan(
     # number of discriminator filters
     ndf = 64
 
-    netG = Generator(ngpu=ngpu, nz=nz, ngf=ngf, nc=nc, receptive_field=receptive_field).to(device)
+    netG = Generator(ngpu=ngpu, nz=nz, ngf=ngf, nc=3, receptive_field=receptive_field).to(device)
     netG.apply(weights_init)
 
-    netD = Discriminator(ngpu, ndf, 3).to(device)
+    netD = Discriminator(ngpu, ndf, nc).to(device)
     netD.apply(weights_init)
 
     decolorizer = GanDecolorizer(receptive_field, distance_metric="euclidean")
