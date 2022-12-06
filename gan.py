@@ -32,8 +32,8 @@ class Generator(nn.Module):
         self.nz = nz
         self.ngf = ngf
         self.nc = nc
-        # self.mult = nc // 3
-        self.mult = 1
+        self.mult = nc // 3
+        # self.mult = 1
 
         self.main = nn.Sequential(
             # input is Z, going into a convolution
@@ -77,10 +77,10 @@ class Generator(nn.Module):
             nn.ReLU(True),
             # state size. (self.ngf) x 32 x 32
             nn.ConvTranspose2d(
-                self.ngf * self.mult, self.nc, 4, 2, 1, bias=False
+                self.ngf * self.mult, self.nc * self.mult, 4, 2, 1, bias=False
             ),
             nn.ReLU(True),
-            nn.Conv2d(self.nc, self.nc, int(np.sqrt(self.nc)), 1, padding=int((np.sqrt(self.nc) - 1)/2), bias=False)
+            nn.Conv2d(self.nc * self.mult, self.nc, int(np.sqrt(self.nc)), 1, padding=int((np.sqrt(self.nc) - 1)/2), bias=False)
             # state size. (self.nc) x 64 x 64
         )
 
@@ -98,8 +98,8 @@ class Discriminator(nn.Module):
     def __init__(self, ngpu, ndf, nc):
         super(Discriminator, self).__init__()
         self.ngpu = ngpu
-        # self.mult = nc // 3
-        self.mult = 1
+        self.mult = nc // 3
+        # self.mult = 1
 
         self.main = nn.Sequential(
             # input is (nc) x 64 x 64
