@@ -297,7 +297,7 @@ def train_gan(
             # fake = torch.clip(netG(noise), 0, 1)
 
             fake = netG(noise)
-            fake = fake * mask
+            # fake = fake * mask
             # print((fake*(1-mask)).sum())
             # print("fake", fake.max())
             label.fill_(fake_label)
