@@ -26,14 +26,15 @@ def weights_init(m):
 
 
 class Generator(nn.Module):
-    def __init__(self, ngpu, nz, ngf, nc):
+    def __init__(self, ngpu, nz, ngf, nc, receptive_field):
         super(Generator, self).__init__()
         self.ngpu = ngpu
         self.nz = nz
         self.ngf = ngf
         self.nc = nc
         # self.mult = nc // 3
-        self.mult = 3
+        self.mult = 1
+        self.decolorizer = GanDecolorizer(receptive_field, distance_metric="euclidean")
 
         self.main = nn.Sequential(
             # input is Z, going into a convolution
@@ -80,7 +81,7 @@ class Generator(nn.Module):
                 self.ngf * self.mult, self.nc * self.mult, 4, 2, 1, bias=False
             ),
             nn.ReLU(True),
-            nn.Conv2d(self.nc * self.mult, self.nc, int(np.sqrt(self.nc)), 1, padding=int((np.sqrt(self.nc) - 1)/2), bias=False)
+            # nn.Conv2d(self.nc * self.mult, self.nc, int(np.sqrt(self.nc)), 1, padding=int((np.sqrt(self.nc) - 1)/2), bias=False)
             # state size. (self.nc) x 64 x 64
         )
 
@@ -91,7 +92,7 @@ class Generator(nn.Module):
             )
         else:
             output = self.main(input)
-            return output
+        return self.decolorizer(output).to(device)
 
 
 class Discriminator(nn.Module):
@@ -99,7 +100,7 @@ class Discriminator(nn.Module):
         super(Discriminator, self).__init__()
         self.ngpu = ngpu
         # self.mult = nc // 3
-        self.mult = 3
+        self.mult = 1
 
         self.main = nn.Sequential(
             # input is (nc) x 64 x 64
@@ -231,10 +232,10 @@ def train_gan(
     # number of discriminator filters
     ndf = 64
 
-    netG = Generator(ngpu=ngpu, nz=nz, ngf=ngf, nc=nc).to(device)
+    netG = Generator(ngpu=ngpu, nz=nz, ngf=ngf, nc=nc, receptive_field=receptive_field).to(device)
     netG.apply(weights_init)
 
-    netD = Discriminator(ngpu, ndf, nc).to(device)
+    netD = Discriminator(ngpu, ndf, 3).to(device)
     netD.apply(weights_init)
 
     decolorizer = GanDecolorizer(receptive_field, distance_metric="euclidean")
