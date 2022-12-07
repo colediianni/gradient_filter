@@ -93,6 +93,8 @@ class Generator(nn.Module):
             )
         else:
             output = self.main(input)
+        noise = torch.randn(output.shape, device=self.device) / 100000
+        output = output + noise
         return self.decolorizer(output).to(self.device)
 
 
@@ -137,36 +139,35 @@ class Discriminator(nn.Module):
             )
         else:
             output = self.main(input)
-
         return output.view(-1, 1).squeeze(1)
 
 
-class Color_Discriminator(nn.Module):
-    def __init__(self, num_pixels, nc=3):
-        super(Color_Discriminator, self).__init__()
-        self.main = nn.Sequential(
-            # input is (nc) x 64 x 64
-            nn.Linear(num_pixels, 1000),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(1000, 1000),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(1000, 2),
-            nn.Sigmoid(),
-        )
-
-    def forward(self, input):
-        print(input.shape)
-        input = torch.sort(input)
-        print("input", input)
-        if input.is_cuda and self.ngpu > 1:
-            output = nn.parallel.data_parallel(
-                self.main, input, range(self.ngpu)
-            )
-        else:
-            output = self.main(input)
-
-        print("output", output.shape)
-        return output
+# class Color_Discriminator(nn.Module):
+#     def __init__(self, num_pixels, nc=3):
+#         super(Color_Discriminator, self).__init__()
+#         self.main = nn.Sequential(
+#             # input is (nc) x 64 x 64
+#             nn.Linear(num_pixels, 1000),
+#             nn.LeakyReLU(0.2, inplace=True),
+#             nn.Linear(1000, 1000),
+#             nn.LeakyReLU(0.2, inplace=True),
+#             nn.Linear(1000, 2),
+#             nn.Sigmoid(),
+#         )
+#
+#     def forward(self, input):
+#         print(input.shape)
+#         input = torch.sort(input)
+#         print("input", input)
+#         if input.is_cuda and self.ngpu > 1:
+#             output = nn.parallel.data_parallel(
+#                 self.main, input, range(self.ngpu)
+#             )
+#         else:
+#             output = self.main(input)
+#
+#         print("output", output.shape)
+#         return output
 
 
 def train_gan(
