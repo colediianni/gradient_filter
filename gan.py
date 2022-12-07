@@ -26,7 +26,7 @@ def weights_init(m):
 
 
 class Generator(nn.Module):
-    def __init__(self, ngpu, nz, ngf, nc, receptive_field, device, mult=2):
+    def __init__(self, ngpu, nz, ngf, nc, receptive_field, device, mult=1):
         super(Generator, self).__init__()
         self.ngpu = ngpu
         self.nz = nz
