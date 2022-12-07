@@ -10,7 +10,7 @@ dataset_dict = {
     "mnist": datasets.MNIST,
     "cifar": datasets.CIFAR10,
 }
-dataset_channels = {"mnist": 3, "cifar": 3}
+dataset_channels = {"mnist": 3, "cifar": 3, "celeba": 3}
 
 dataset_root = Path.cwd() / "data"
 
@@ -28,11 +28,20 @@ def load_data_gan(
     colorspace_transforms = (
         colorspace_transforms + [transforms.Resize(64)] + test_augmentations
     )
-    dataset_loader = dataset_dict[dataset](
-        root="./data",
-        download=True,
-        transform=transforms.Compose(colorspace_transforms),
-    )
+    if dataset == "celeba":
+        dataset_loader = datasets.ImageFolder(root="/content/data",
+                                                transform=transforms.Compose([
+                                                transforms.Resize(64),
+                                                transforms.CenterCrop(64),
+                                                transforms.ToTensor(),
+                                                #  transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                                            ]))
+    else:
+        dataset_loader = dataset_dict[dataset](
+            root="./data",
+            download=True,
+            transform=transforms.Compose(colorspace_transforms),
+        )
     data_loader = torch.utils.data.DataLoader(
         dataset_loader,
         batch_size=batch_size,
