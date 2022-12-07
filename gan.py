@@ -33,7 +33,7 @@ class Generator(nn.Module):
         self.ngf = ngf
         self.nc = nc
         # self.mult = nc // 3
-        self.mult = 1
+        self.mult = 2
         self.device = device
         self.decolorizer = GanDecolorizer(receptive_field, distance_metric="euclidean")
 
