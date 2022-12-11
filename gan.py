@@ -82,7 +82,7 @@ class Generator(nn.Module):
                 self.ngf * self.mult, self.nc, 4, 2, 1, bias=False
             ),
             nn.ReLU(True),
-            nn.Conv2d(self.nc * self.mult, self.nc, int(np.sqrt(self.nc)), 1, padding=int((np.sqrt(self.nc) - 1)/2), bias=False)
+            # nn.Conv2d(self.nc * self.mult, self.nc, int(np.sqrt(self.nc)), 1, padding=int((np.sqrt(self.nc) - 1)/2), bias=False)
             # state size. (self.nc) x 64 x 64
         )
 
@@ -93,9 +93,8 @@ class Generator(nn.Module):
             )
         else:
             output = self.main(input)
-        noise = torch.randn(output.shape, device=self.device) / 100000
-        output = output + noise
-        return self.decolorizer(output).to(self.device)
+        return output.to(self.device)
+        # return self.decolorizer(output).to(self.device)
 
 
 class Discriminator(nn.Module):
@@ -234,7 +233,7 @@ def train_gan(
     # number of discriminator filters
     ndf = 64
 
-    netG = Generator(ngpu=ngpu, nz=nz, ngf=ngf, nc=3, receptive_field=receptive_field, device=device).to(device)
+    netG = Generator(ngpu=ngpu, nz=nz, ngf=ngf, nc=nc, receptive_field=receptive_field, device=device).to(device)
     netG.apply(weights_init)
 
     netD = Discriminator(ngpu, ndf, nc).to(device)
