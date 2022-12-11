@@ -21,6 +21,7 @@ def load_data_gan(
     batch_size=64,
     train_prop=0.8,
     test_augmentation="none",
+    dataroot="."
 ):
     colorspace_transforms = colorspaces[colorspace]
     test_augmentations = augmentations_dict[test_augmentation]
@@ -29,7 +30,7 @@ def load_data_gan(
         colorspace_transforms + [transforms.Resize(64)] + test_augmentations
     )
     if dataset == "celeba":
-        dataset_loader = datasets.ImageFolder(root="/content/data",
+        dataset_loader = datasets.ImageFolder(root=dataroot,
                                                 transform=transforms.Compose([
                                                 transforms.Resize(64),
                                                 transforms.CenterCrop(64),

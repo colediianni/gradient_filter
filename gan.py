@@ -26,63 +26,61 @@ def weights_init(m):
 
 
 class Generator(nn.Module):
-    def __init__(self, ngpu, nz, ngf, nc, receptive_field, device, mult=1):
+    def __init__(self, ngpu, nz, ngf, nc, receptive_field, device):
         super(Generator, self).__init__()
         self.ngpu = ngpu
         self.nz = nz
         self.ngf = ngf
         self.nc = nc
-        # self.mult = nc // 3
-        self.mult = mult
         self.device = device
-        self.decolorizer = GanDecolorizer(receptive_field, distance_metric="euclidean")
+        # self.decolorizer = GanDecolorizer(receptive_field, distance_metric="euclidean")
 
         self.main = nn.Sequential(
             # input is Z, going into a convolution
             nn.ConvTranspose2d(
-                self.nz, self.ngf * 8 * self.mult, 4, 1, 0, bias=False
+                self.nz, self.ngf * 8, 4, 1, 0, bias=False
             ),
-            nn.BatchNorm2d(self.ngf * 8 * self.mult),
+            nn.BatchNorm2d(self.ngf * 8),
             nn.ReLU(True),
             # state size. (self.ngf*8) x 4 x 4
             nn.ConvTranspose2d(
-                self.ngf * 8 * self.mult,
-                self.ngf * 4 * self.mult,
+                self.ngf * 8,
+                self.ngf * 4,
                 4,
                 2,
                 1,
                 bias=False,
             ),
-            nn.BatchNorm2d(self.ngf * 4 * self.mult),
+            nn.BatchNorm2d(self.ngf * 4),
             nn.ReLU(True),
             # state size. (self.ngf*4) x 8 x 8
             nn.ConvTranspose2d(
-                self.ngf * 4 * self.mult,
-                self.ngf * 2 * self.mult,
+                self.ngf * 4,
+                self.ngf * 2,
                 4,
                 2,
                 1,
                 bias=False,
             ),
-            nn.BatchNorm2d(self.ngf * 2 * self.mult),
+            nn.BatchNorm2d(self.ngf * 2),
             nn.ReLU(True),
             # state size. (self.ngf*2) x 16 x 16
             nn.ConvTranspose2d(
-                self.ngf * 2 * self.mult,
-                self.ngf * self.mult,
+                self.ngf * 2,
+                self.ngf,
                 4,
                 2,
                 1,
                 bias=False,
             ),
-            nn.BatchNorm2d(self.ngf * self.mult),
+            nn.BatchNorm2d(self.ngf),
             nn.ReLU(True),
             # state size. (self.ngf) x 32 x 32
             nn.ConvTranspose2d(
-                self.ngf * self.mult, self.nc, 4, 2, 1, bias=False
+                self.ngf, self.nc, 4, 2, 1, bias=False
             ),
             nn.ReLU(True),
-            # nn.Conv2d(self.nc * self.mult, self.nc, int(np.sqrt(self.nc)), 1, padding=int((np.sqrt(self.nc) - 1)/2), bias=False)
+            # nn.Conv2d(self.nc , self.nc, int(np.sqrt(self.nc)), 1, padding=int((np.sqrt(self.nc) - 1)/2), bias=False)
             # state size. (self.nc) x 64 x 64
         )
 
@@ -98,36 +96,34 @@ class Generator(nn.Module):
 
 
 class Discriminator(nn.Module):
-    def __init__(self, ngpu, ndf, nc, mult=1):
+    def __init__(self, ngpu, ndf, nc):
         super(Discriminator, self).__init__()
         self.ngpu = ngpu
-        # self.mult = nc // 3
-        self.mult = mult
 
         self.main = nn.Sequential(
             # input is (nc) x 64 x 64
-            nn.Conv2d(nc, ndf * self.mult, 4, 2, padding=0, bias=False),
+            nn.Conv2d(nc, ndf, 4, 2, padding=0, bias=False),
             nn.LeakyReLU(0.2, inplace=True),
             # state size. (ndf) x 32 x 32
             nn.Conv2d(
-                ndf * self.mult, ndf * 2 * self.mult, 4, 2, 2, bias=False
+                ndf, ndf * 2, 4, 2, 2, bias=False
             ),
-            nn.BatchNorm2d(ndf * 2 * self.mult),
+            nn.BatchNorm2d(ndf * 2 ),
             nn.LeakyReLU(0.2, inplace=True),
             # state size. (ndf*2) x 16 x 16
             nn.Conv2d(
-                ndf * 2 * self.mult, ndf * 4 * self.mult, 4, 2, 1, bias=False
+                ndf * 2, ndf * 4, 4, 2, 1, bias=False
             ),
-            nn.BatchNorm2d(ndf * 4 * self.mult),
+            nn.BatchNorm2d(ndf * 4),
             nn.LeakyReLU(0.2, inplace=True),
             # state size. (ndf*4) x 8 x 8
             nn.Conv2d(
-                ndf * 4 * self.mult, ndf * 8 * self.mult, 4, 2, 1, bias=False
+                ndf * 4, ndf * 8 , 4, 2, 1, bias=False
             ),
-            nn.BatchNorm2d(ndf * 8 * self.mult),
+            nn.BatchNorm2d(ndf * 8),
             nn.LeakyReLU(0.2, inplace=True),
             # state size. (ndf*8) x 4 x 4
-            nn.Conv2d(ndf * 8 * self.mult, 1, 4, 1, 0, bias=False),
+            nn.Conv2d(ndf * 8, 1, 4, 1, 0, bias=False),
             nn.Sigmoid(),
         )
 
@@ -175,6 +171,7 @@ def train_gan(
     dataset_name,
     colorspace,
     device,
+    dataroot='.',
     D_criterion=nn.BCELoss(),
     G_criterion=nn.BCELoss(),
     receptive_field=2,
@@ -218,6 +215,7 @@ def train_gan(
         colorspace=colorspace,
         batch_size=batch_size,
         train_prop=1,
+        dataroot=dataroot
     )
 
     # checking the availability of cuda devices
